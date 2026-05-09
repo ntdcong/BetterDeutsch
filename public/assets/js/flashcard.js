@@ -103,13 +103,19 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                             ${vocab.note ? `<div class="mt-8 text-sm text-muted-foreground italic bg-white/60 p-4 rounded-lg max-w-sm w-full border border-white/40">${vocab.note}</div>` : ''}
                             
-                            ${vocab.word_type === 'verb' ? `
-                            <div class="mt-10">
-                                <button class="btn-verb-lookup inline-flex items-center justify-center rounded-full text-sm font-medium border bg-white text-primary hover:bg-muted h-12 px-8 transition-colors shadow-sm active:scale-95" data-word="${vocab.word}">
+                            <div class="mt-10 flex gap-2 justify-center flex-wrap z-20">
+                                ${vocab.word_type === 'verb' ? `
+                                <button class="btn-verb-lookup inline-flex items-center justify-center rounded-full text-sm font-medium border bg-white text-primary hover:bg-muted h-12 px-6 transition-colors shadow-sm active:scale-95" data-word="${vocab.word}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                                    Tra cứu động từ
+                                    Tra cứu
                                 </button>
-                            </div>` : ''}
+                                ` : ''}
+                                
+                                <button class="btn-edit-vocab inline-flex items-center justify-center rounded-full text-sm font-medium border bg-white text-muted-foreground hover:bg-muted h-12 px-6 transition-colors shadow-sm active:scale-95" data-index="${currentIndex + indexOffset}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                    Sửa
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -158,6 +164,18 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 lookupVerb(btn.dataset.word);
+            });
+        });
+
+        const editBtns = topCardWrapper.querySelectorAll('.btn-edit-vocab');
+        editBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = parseInt(btn.dataset.index);
+                const v = vocabularies[idx];
+                if (v) {
+                    window.dispatchEvent(new CustomEvent('editVocab', { detail: v }));
+                }
             });
         });
 

@@ -18,10 +18,66 @@ class NotebookController extends Controller
         $notebookModel = new Notebook();
         $notebooks = $notebookModel->getAllForUser(Auth::id());
 
+        $groupModel = new \App\Models\NotebookGroup();
+        $groups = $groupModel->getAllForUser(Auth::id());
+
         $this->render('notebooks/index', [
             'title' => 'Sổ tay từ vựng',
-            'notebooks' => $notebooks
+            'notebooks' => $notebooks,
+            'groups' => $groups
         ]);
+    }
+
+    public function store(): void
+    {
+        if (!Auth::check() || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/notebooks');
+        }
+
+        $name = trim($_POST['name'] ?? '');
+        $note = trim($_POST['note'] ?? '');
+        $groupId = !empty($_POST['notebook_group_id']) ? (int)$_POST['notebook_group_id'] : null;
+
+        if ($name !== '') {
+            $notebookModel = new Notebook();
+            $notebookModel->create(Auth::id(), $name, $note, $groupId);
+        }
+
+        $this->redirect('/notebooks');
+    }
+
+    public function update(): void
+    {
+        if (!Auth::check() || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/notebooks');
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+        $name = trim($_POST['name'] ?? '');
+        $note = trim($_POST['note'] ?? '');
+        $groupId = !empty($_POST['notebook_group_id']) ? (int)$_POST['notebook_group_id'] : null;
+
+        if ($id > 0 && $name !== '') {
+            $notebookModel = new Notebook();
+            $notebookModel->update($id, Auth::id(), $name, $note, $groupId);
+        }
+
+        $this->redirect('/notebooks');
+    }
+
+    public function delete(): void
+    {
+        if (!Auth::check() || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/notebooks');
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            $notebookModel = new Notebook();
+            $notebookModel->delete($id, Auth::id());
+        }
+
+        $this->redirect('/notebooks');
     }
 
     public function flashcard(): void

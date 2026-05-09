@@ -42,7 +42,13 @@ declare(strict_types=1);
         .rotate-y-180 { transform: rotateY(180deg); }
         
         /* Card Stack Container */
-        .card-stack { position: relative; width: 100%; max-width: 32rem; height: 26rem; margin: 0 auto; }
+        .card-stack {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            max-width: 36rem;
+            margin: 0 auto;
+        }
         
         .card-wrapper {
             position: absolute;
@@ -91,30 +97,30 @@ declare(strict_types=1);
 </head>
 <body class="h-screen flex flex-col font-sans text-foreground select-none" id="flashcard-app" data-notebook-id="<?= $notebook['id'] ?>">
     <!-- Top Bar -->
-    <div class="flex items-center justify-between p-4 bg-white/50 backdrop-blur border-b border-border z-10 shrink-0 relative">
-        <a href="/notebooks" class="text-sm font-medium text-muted-foreground hover:text-foreground inline-flex items-center transition-colors">
+    <div class="flex items-center justify-between p-3 sm:p-4 bg-white/50 backdrop-blur border-b border-border z-10 shrink-0 gap-2">
+        <a href="/notebooks" class="text-sm font-medium text-muted-foreground hover:text-foreground inline-flex items-center transition-colors shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
             <span class="hidden sm:inline">Sổ tay</span>
         </a>
         
-        <div class="absolute left-1/2 -translate-x-1/2 text-lg sm:text-xl font-extrabold tracking-tight text-foreground truncate max-w-[40%] text-center">
+        <div class="flex-1 text-center text-base sm:text-lg font-extrabold tracking-tight text-foreground truncate px-2">
             <?= htmlspecialchars($notebook['name'] ?? 'Học Flashcard', ENT_QUOTES, 'UTF-8') ?>
         </div>
 
-        <div class="flex items-center gap-2">
-            <button id="toggle-autoplay-btn" class="text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 inline-flex items-center transition-colors" title="Bật/Tắt tự động đọc">
-                <span class="sm:hidden">Phát âm: Thủ công</span><span class="hidden sm:inline">Phát âm: Thủ công</span>
+        <div class="flex items-center gap-1.5 shrink-0">
+            <button id="toggle-autoplay-btn" class="text-xs font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg px-2 py-1.5 inline-flex items-center transition-colors whitespace-nowrap" title="Bật/Tắt tự động đọc">
+                Phát âm: Thủ công
             </button>
-            <button class="inline-flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium bg-primary text-primaryForeground hover:bg-primary/90 h-8 sm:h-9 px-3 sm:px-4 shadow-sm transition-all active:scale-95 text-white">
+            <button onclick="openVocabModal()" class="inline-flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium bg-primary text-primaryForeground hover:bg-primary/90 h-8 sm:h-9 px-2 sm:px-4 shadow-sm transition-all active:scale-95 text-white">
                 <span class="sm:hidden">+</span><span class="hidden sm:inline">Thêm từ mới</span>
             </button>
         </div>
     </div>
  
     <!-- Main Card Area -->
-    <div class="flex-1 flex flex-col p-4 sm:p-6 relative overflow-hidden perspective-1000">
+    <div class="flex-1 flex flex-col px-4 pt-3 pb-4 sm:px-6 sm:pt-4 sm:pb-5 overflow-hidden perspective-1000">
         <!-- Progress & Shuffle -->
-        <div class="w-full max-w-2xl mx-auto flex items-center justify-between mb-4 sm:mb-6 shrink-0 gap-4">
+        <div class="w-full max-w-2xl mx-auto flex items-center justify-between mb-3 shrink-0 gap-4">
             <div class="flex items-center gap-3 flex-1">
                 <span class="text-sm font-bold text-muted-foreground w-10 text-right" id="progress-text">0/0</span>
                 <div class="h-2.5 flex-1 bg-secondary rounded-full overflow-hidden border border-border/50">
@@ -127,27 +133,29 @@ declare(strict_types=1);
             </button> 
         </div>
 
-        <!-- Stack -->
-        <div class="flex-1 w-full h-full relative">
+        <!-- Card Stack: fills space but capped to prevent overflow -->
+        <div class="flex-1 w-full max-w-2xl mx-auto relative min-h-0 max-h-[52vh] sm:max-h-[58vh] md:max-h-[62vh]">
             <div class="card-stack" id="card-stack">
                 <div class="absolute inset-0 flex items-center justify-center p-12 border-2 border-dashed border-border rounded-2xl bg-white">
                     <div class="text-center text-muted-foreground font-medium animate-pulse" id="loading-indicator">Đang tải dữ liệu...</div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Bottom Controls -->
-    <div class="p-4 sm:p-6 bg-white/50 backdrop-blur border-t border-border z-10 shrink-0 flex justify-center gap-3 sm:gap-6">
-        <button id="btn-prev" class="inline-flex items-center justify-center rounded-xl text-sm font-bold border-2 border-border bg-white hover:bg-secondary hover:text-foreground h-10 w-24 sm:w-36 disabled:opacity-50 shadow-sm transition-all active:scale-95 text-muted-foreground">
-            TRƯỚC
-        </button>
-        <button id="btn-flip" class="inline-flex items-center justify-center rounded-xl text-sm font-bold border-2 border-primary bg-primary text-primaryForeground hover:bg-primary/90 h-11 w-24 sm:w-36 shadow-sm transition-all active:scale-95 text-white">
-            LẬT THẺ
-        </button>
-        <button id="btn-next" class="inline-flex items-center justify-center rounded-xl text-sm font-bold border-2 border-border bg-white hover:bg-secondary hover:text-foreground h-11 w-24 sm:w-36 disabled:opacity-50 shadow-sm transition-all active:scale-95 text-muted-foreground">
-            SAU
-        </button>
+        <br/>
+        <br/>
+        <!-- Controls: right below the card, no gap -->
+        <div class="w-full max-w-2xl mx-auto flex items-center justify-center gap-3 pt-3 shrink-0">
+            <button id="btn-prev" class="inline-flex items-center justify-center rounded-xl text-sm font-bold border-2 border-border bg-white hover:bg-secondary hover:text-foreground h-11 flex-1 disabled:opacity-50 shadow-sm transition-all active:scale-95 text-muted-foreground">
+                TRƯỚC
+            </button>
+            <button id="btn-flip" class="inline-flex items-center justify-center rounded-xl text-sm font-bold border-2 border-primary bg-primary hover:bg-primary/90 h-12 flex-1 shadow-sm transition-all active:scale-95 text-white">
+                LẬT THẺ
+            </button>
+            <button id="btn-next" class="inline-flex items-center justify-center rounded-xl text-sm font-bold border-2 border-border bg-white hover:bg-secondary hover:text-foreground h-11 flex-1 disabled:opacity-50 shadow-sm transition-all active:scale-95 text-muted-foreground">
+                SAU
+            </button>
+        </div>
     </div>
 
     <!-- Verb Modal -->
@@ -163,6 +171,101 @@ declare(strict_types=1);
         </div>
     </div>
 
+    <!-- Modal: Tạo / Sửa Từ vựng -->
+    <div id="modal-vocab" class="fixed inset-0 z-[60] bg-background/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-card text-card-foreground shadow-lg border rounded-xl w-full max-w-lg animate-in fade-in zoom-in-95 p-6 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeVocabModal()" class="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+            <h3 class="font-semibold text-xl tracking-tight mb-4" id="modal-vocab-title">Thêm từ vựng</h3>
+            <form id="form-vocab" action="/vocabularies/create" method="POST" class="space-y-4">
+                <input type="hidden" name="id" id="vocab_id">
+                <input type="hidden" name="notebook_id" value="<?= $notebook['id'] ?>">
+                <input type="hidden" name="redirect" value="/notebooks/flashcard?id=<?= $notebook['id'] ?>">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2 col-span-2 sm:col-span-1">
+                        <label class="text-sm font-medium leading-none">Từ vựng (Tiếng Đức) *</label>
+                        <input type="text" name="word" id="vocab_word" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    </div>
+                    <div class="space-y-2 col-span-2 sm:col-span-1">
+                        <label class="text-sm font-medium leading-none">Nghĩa tiếng Việt *</label>
+                        <input type="text" name="translation_vn" id="vocab_translation_vn" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium leading-none">Loại từ</label>
+                        <select name="word_type" id="vocab_word_type" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring">
+                            <option value="none">-- Chọn loại từ --</option>
+                            <option value="noun">Danh từ (Noun)</option>
+                            <option value="verb">Động từ (Verb)</option>
+                            <option value="adj">Tính từ (Adj)</option>
+                            <option value="adv">Trạng từ (Adv)</option>
+                            <option value="prep">Giới từ (Prep)</option>
+                            <option value="pron">Đại từ (Pron)</option>
+                            <option value="conj">Liên từ (Conj)</option>
+                            <option value="article">Mạo từ (Article)</option>
+                            <option value="phrase">Cụm từ (Phrase)</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium leading-none">Giống</label>
+                        <select name="article" id="vocab_article" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring">
+                            <option value="">-- Không có --</option>
+                            <option value="der">Der</option>
+                            <option value="die">Die</option>
+                            <option value="das">Das</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium leading-none">Số nhiều</label>
+                        <input type="text" name="plural_form" id="vocab_plural_form" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium leading-none">Giới từ</label>
+                        <input type="text" name="preposition" id="vocab_preposition" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    </div>
+                    <div class="space-y-2 col-span-2">
+                        <label class="text-sm font-medium leading-none">Ghi chú</label>
+                        <textarea name="note" id="vocab_note" class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"></textarea>
+                    </div>
+                </div>
+                <div class="pt-4 flex gap-2 justify-end">
+                    <button type="button" onclick="closeVocabModal()" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">Hủy</button>
+                    <button type="submit" class="inline-flex text-white items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">Lưu từ vựng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="/assets/js/flashcard.js?v=<?= time() ?>"></script>
+    <script>
+    function openVocabModal() {
+        document.getElementById('modal-vocab').classList.remove('hidden');
+    }
+    function closeVocabModal() {
+        document.getElementById('modal-vocab').classList.add('hidden');
+        document.getElementById('form-vocab').reset();
+        document.getElementById('form-vocab').action = '/vocabularies/create';
+        document.getElementById('modal-vocab-title').textContent = 'Thêm từ vựng mới';
+        document.getElementById('vocab_id').value = '';
+    }
+    // Listen for custom event 'editVocab' from flashcard.js
+    window.addEventListener('editVocab', (e) => {
+        const v = e.detail;
+        document.getElementById('form-vocab').action = '/vocabularies/update';
+        document.getElementById('modal-vocab-title').textContent = 'Chỉnh sửa từ vựng';
+        
+        document.getElementById('vocab_id').value = v.id;
+        document.getElementById('vocab_word').value = v.word;
+        document.getElementById('vocab_translation_vn').value = v.translation_vn;
+        document.getElementById('vocab_word_type').value = v.word_type || 'none';
+        document.getElementById('vocab_article').value = v.article || '';
+        document.getElementById('vocab_plural_form').value = v.plural_form || '';
+        document.getElementById('vocab_preposition').value = v.preposition || '';
+        document.getElementById('vocab_note').value = v.note || '';
+        
+        openVocabModal();
+    });
+    </script>
 </body>
 </html>
