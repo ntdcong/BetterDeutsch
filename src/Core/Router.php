@@ -30,6 +30,15 @@ class Router
     {
         $path = parse_url($uri, PHP_URL_PATH);
 
+        // Normalize path to support subdirectory/public folder rewrites
+        if ($path !== null) {
+            if (str_starts_with($path, '/public/')) {
+                $path = substr($path, 7); // Strip '/public' but keep '/' (e.g. /public/login -> /login)
+            } elseif ($path === '/public') {
+                $path = '/';
+            }
+        }
+
         foreach ($this->routes as $route) {
             if ($route['method'] === $method && $route['path'] === $path) {
                 if (is_callable($route['callback'])) {
