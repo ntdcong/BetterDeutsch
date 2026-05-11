@@ -102,4 +102,27 @@ class NotebookController extends Controller
             'notebook' => $notebook
         ]);
     }
+
+    public function practice(): void
+    {
+        if (!Auth::check()) {
+            $this->redirect('/login');
+        }
+
+        $notebookId = (int)($_GET['id'] ?? 0);
+        if ($notebookId <= 0) {
+            $this->redirect('/notebooks');
+        }
+
+        $notebookModel = new Notebook();
+        $notebook = $notebookModel->findById($notebookId);
+        if (!$notebook) {
+            $this->redirect('/notebooks');
+        }
+
+        $this->render('notebooks/practice', [
+            'title' => 'Luyện tập: ' . htmlspecialchars($notebook['name'], ENT_QUOTES, 'UTF-8'),
+            'notebook' => $notebook
+        ]);
+    }
 }

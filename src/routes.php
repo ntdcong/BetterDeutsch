@@ -26,6 +26,7 @@ $router->post('/notebooks/create', [NotebookController::class, 'store']);
 $router->post('/notebooks/update', [NotebookController::class, 'update']);
 $router->post('/notebooks/delete', [NotebookController::class, 'delete']);
 $router->get('/notebooks/flashcard', [NotebookController::class, 'flashcard']);
+$router->get('/notebooks/practice', [NotebookController::class, 'practice']);
 
 $router->post('/notebook-groups/create', [NotebookGroupController::class, 'store']);
 $router->post('/notebook-groups/update', [NotebookGroupController::class, 'update']);

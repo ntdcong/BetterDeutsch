@@ -48,13 +48,17 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
         </div>
     </div>
     
-    <div class="p-6 pt-0 mt-auto flex gap-3">
-        <a href="/notebooks/flashcard?id=<?= $notebook['id'] ?>" class="flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M21 9H3"/><path d="M9 21V9"/></svg>
+    <div class="p-6 pt-0 mt-auto flex gap-2">
+        <a href="/notebooks/flashcard?id=<?= $notebook['id'] ?>" class="flex-1 inline-flex items-center justify-center rounded-md text-[13px] font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-2 shadow-sm" title="Học Flashcard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M21 9H3"/><path d="M9 21V9"/></svg>
             Flashcard
         </a>
-        <a href="/vocabularies?notebook_id=<?= $notebook['id'] ?>" class="flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2" title="Quản lý từ vựng">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        <a href="/notebooks/practice?id=<?= $notebook['id'] ?>" class="flex-1 inline-flex items-center justify-center rounded-md text-[13px] font-medium transition-colors border border-input bg-secondary hover:bg-secondary/80 text-secondary-foreground h-9 px-2 shadow-sm" title="Luyện tập">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
+            Luyện tập
+        </a>
+        <a href="/vocabularies?notebook_id=<?= $notebook['id'] ?>" class="flex-1 inline-flex items-center justify-center rounded-md text-[13px] font-medium transition-colors border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-2" title="Quản lý từ vựng">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
             Quản lý
         </a>
     </div>

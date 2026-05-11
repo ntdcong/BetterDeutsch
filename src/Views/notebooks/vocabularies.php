@@ -15,6 +15,9 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
                 <a href="/notebooks/flashcard?id=<?= $notebook['id'] ?>" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
                     Học Flashcard
                 </a>
+                <a href="/notebooks/practice?id=<?= $notebook['id'] ?>" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input bg-secondary hover:bg-secondary/80 text-secondary-foreground h-10 px-4 py-2">
+                    Luyện tập
+                </a>
                 <?php if ($isOwner): ?>
                 <button onclick="openImportModal()" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2">
                     Nhập (Excel/CSV)
@@ -201,7 +204,7 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
             <input type="hidden" name="notebook_id" value="<?= $notebook['id'] ?>">
             <div class="space-y-2">
                 <label class="text-sm font-medium leading-none">Chọn file Excel hoặc CSV</label>
-                <input type="file" name="import_file" accept=".xlsx, .csv" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <input type="file" name="import_file" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             </div>
             
             <div class="pt-4 flex gap-2 justify-end">
