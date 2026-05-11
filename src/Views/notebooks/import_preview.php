@@ -21,19 +21,20 @@
 
     <!-- Toolbar -->
     <div class="mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border shadow-sm" id="toolbar">
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-4 flex-wrap">
             <div class="flex items-center space-x-2">
-                <input type="checkbox" id="filter-duplicates" class="h-4 w-4 rounded border-input text-primary focus:ring-primary" onchange="renderTable()">
+                <input type="checkbox" id="filter-duplicates" class="h-4 w-4 rounded border-input text-primary focus:ring-primary" onchange="filterAndRender()">
                 <label for="filter-duplicates" class="text-sm font-medium leading-none">Chỉ hiện từ trùng lặp</label>
             </div>
+            <input type="text" id="search-input" placeholder="Tìm kiếm từ vựng..." class="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" oninput="filterAndRender()">
             <div class="text-sm text-muted-foreground">
                 Đã chọn: <span id="selected-count" class="font-bold text-foreground">0</span> / <span id="total-count">0</span> từ
             </div>
         </div>
-        <div class="flex gap-2">
-            <button onclick="selectAll()" class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">Chọn tất cả</button>
-            <button onclick="deselectAll()" class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">Bỏ chọn tất cả</button>
-            <button onclick="startImport()" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 ml-2">Nhập dữ liệu đã chọn</button>
+        <div class="flex gap-2 flex-wrap">
+            <button onclick="selectAllFiltered()" class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">Chọn tất cả</button>
+            <button onclick="deselectAllFiltered()" class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">Bỏ chọn</button>
+            <button onclick="startImport()" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2">Nhập dữ liệu đã chọn</button>
         </div>
     </div>
 
@@ -59,6 +60,9 @@
             </table>
         </div>
     </div>
+    
+    <!-- Pagination Container -->
+    <div id="pagination-container" class="mt-4 flex justify-center gap-2 flex-wrap"></div>
 </div>
 
 <script>
@@ -66,6 +70,10 @@
     const notebookId = <?= $notebook['id'] ?>;
     let selectedIds = new Set();
     
+    let filteredData = [];
+    let currentPage = 1;
+    const pageSize = 20;
+
     // Auto-select non-duplicate words by default
     rawData.forEach(item => {
         if (!item.is_duplicate) {
@@ -73,21 +81,35 @@
         }
     });
 
+    function filterAndRender() {
+        const filterDuplicates = document.getElementById('filter-duplicates').checked;
+        const searchQuery = document.getElementById('search-input').value.toLowerCase();
+
+        filteredData = rawData.filter(item => {
+            if (filterDuplicates && !item.is_duplicate) return false;
+            if (searchQuery && !item.word.toLowerCase().includes(searchQuery) && !item.translation_vn.toLowerCase().includes(searchQuery)) return false;
+            return true;
+        });
+
+        currentPage = 1; // Reset to page 1 on filter
+        renderTable();
+    }
+
     function renderTable() {
         const tbody = document.getElementById('preview-tbody');
-        const filterDuplicates = document.getElementById('filter-duplicates').checked;
-        
         tbody.innerHTML = '';
         
-        let visibleCount = 0;
-        let visibleSelectedCount = 0;
+        let visibleCount = filteredData.length;
 
-        rawData.forEach(item => {
-            if (filterDuplicates && !item.is_duplicate) return;
-            
-            visibleCount++;
+        // Calculate pagination
+        const totalPages = Math.ceil(visibleCount / pageSize);
+        if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+        
+        const startIdx = (currentPage - 1) * pageSize;
+        const pageData = filteredData.slice(startIdx, startIdx + pageSize);
+
+        pageData.forEach(item => {
             const isSelected = selectedIds.has(item.id);
-            if (isSelected) visibleSelectedCount++;
 
             const tr = document.createElement('tr');
             tr.className = `transition-colors hover:bg-muted/50 ${item.is_duplicate ? 'bg-red-50/50 dark:bg-red-950/20' : ''}`;
@@ -125,9 +147,60 @@
         document.getElementById('total-count').textContent = rawData.length;
         document.getElementById('selected-count').textContent = selectedIds.size;
         
+        let totalSelectedInFilter = 0;
+        filteredData.forEach(item => {
+            if (selectedIds.has(item.id)) totalSelectedInFilter++;
+        });
+
         const checkAll = document.getElementById('check-all');
-        checkAll.checked = visibleCount > 0 && visibleSelectedCount === visibleCount;
-        checkAll.indeterminate = visibleSelectedCount > 0 && visibleSelectedCount < visibleCount;
+        checkAll.checked = visibleCount > 0 && totalSelectedInFilter === visibleCount;
+        checkAll.indeterminate = totalSelectedInFilter > 0 && totalSelectedInFilter < visibleCount;
+        
+        renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+        const container = document.getElementById('pagination-container');
+        container.innerHTML = '';
+        if (totalPages <= 1) return;
+
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        if (startPage > 1) {
+            container.appendChild(createPageBtn(1));
+            if (startPage > 2) {
+                const dots = document.createElement('span');
+                dots.className = 'inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-2 text-muted-foreground';
+                dots.textContent = '...';
+                container.appendChild(dots);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            container.appendChild(createPageBtn(i));
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                const dots = document.createElement('span');
+                dots.className = 'inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-2 text-muted-foreground';
+                dots.textContent = '...';
+                container.appendChild(dots);
+            }
+            container.appendChild(createPageBtn(totalPages));
+        }
+    }
+
+    function createPageBtn(page) {
+        const btn = document.createElement('button');
+        btn.textContent = page;
+        btn.className = `inline-flex items-center justify-center rounded-md text-sm font-medium h-9 w-9 border ${page === currentPage ? 'border-primary bg-primary text-primary-foreground' : 'border-input bg-background hover:bg-accent hover:text-accent-foreground'}`;
+        btn.onclick = () => {
+            currentPage = page;
+            renderTable();
+        };
+        return btn;
     }
 
     function toggleRow(id, el) {
@@ -137,50 +210,38 @@
             selectedIds.delete(id);
         }
         document.getElementById('selected-count').textContent = selectedIds.size;
-        updateCheckAllState();
-    }
-
-    function updateCheckAllState() {
-        const filterDuplicates = document.getElementById('filter-duplicates').checked;
-        let visibleCount = 0;
-        let visibleSelectedCount = 0;
         
-        rawData.forEach(item => {
-            if (filterDuplicates && !item.is_duplicate) return;
-            visibleCount++;
-            if (selectedIds.has(item.id)) visibleSelectedCount++;
+        let totalSelectedInFilter = 0;
+        filteredData.forEach(item => {
+            if (selectedIds.has(item.id)) totalSelectedInFilter++;
         });
-
         const checkAll = document.getElementById('check-all');
-        checkAll.checked = visibleCount > 0 && visibleSelectedCount === visibleCount;
-        checkAll.indeterminate = visibleSelectedCount > 0 && visibleSelectedCount < visibleCount;
+        checkAll.checked = filteredData.length > 0 && totalSelectedInFilter === filteredData.length;
+        checkAll.indeterminate = totalSelectedInFilter > 0 && totalSelectedInFilter < filteredData.length;
     }
 
     function toggleAll(el) {
-        const filterDuplicates = document.getElementById('filter-duplicates').checked;
         const isChecked = el.checked;
-        
-        rawData.forEach(item => {
-            if (filterDuplicates && !item.is_duplicate) return;
-            
+        filteredData.forEach(item => {
             if (isChecked) {
                 selectedIds.add(item.id);
             } else {
                 selectedIds.delete(item.id);
             }
         });
-        
+        document.getElementById('selected-count').textContent = selectedIds.size;
         renderTable();
     }
 
-    function selectAll() {
-        rawData.forEach(item => selectedIds.add(item.id));
-        document.getElementById('filter-duplicates').checked = false;
+    function selectAllFiltered() {
+        filteredData.forEach(item => selectedIds.add(item.id));
+        document.getElementById('selected-count').textContent = selectedIds.size;
         renderTable();
     }
 
-    function deselectAll() {
-        selectedIds.clear();
+    function deselectAllFiltered() {
+        filteredData.forEach(item => selectedIds.delete(item.id));
+        document.getElementById('selected-count').textContent = selectedIds.size;
         renderTable();
     }
 
@@ -250,7 +311,7 @@
     }
 
     // Initial render
-    renderTable();
+    filterAndRender();
 </script>
 
 <?php

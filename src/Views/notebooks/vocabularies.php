@@ -115,12 +115,31 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
 
     <!-- Pagination -->
     <?php if ($totalPages > 1): ?>
-    <div class="mt-6 flex justify-center gap-2">
-        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+    <div class="mt-6 flex justify-center gap-2 flex-wrap">
+        <?php
+        $startPage = max(1, $page - 2);
+        $endPage = min($totalPages, $page + 2);
+
+        if ($startPage > 1) {
+            echo '<a href="?notebook_id=' . $notebook['id'] . '&search=' . urlencode($search ?? '') . '&page=1" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 w-9 border border-input bg-background hover:bg-accent hover:text-accent-foreground">1</a>';
+            if ($startPage > 2) {
+                echo '<span class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-2 text-muted-foreground">...</span>';
+            }
+        }
+
+        for ($i = $startPage; $i <= $endPage; $i++): ?>
             <a href="?notebook_id=<?= $notebook['id'] ?>&search=<?= urlencode($search ?? '') ?>&page=<?= $i ?>" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 w-9 border <?= $i === $page ? 'border-primary bg-primary text-primary-foreground' : 'border-input bg-background hover:bg-accent hover:text-accent-foreground' ?>">
                 <?= $i ?>
             </a>
-        <?php endfor; ?>
+        <?php endfor; 
+        
+        if ($endPage < $totalPages) {
+            if ($endPage < $totalPages - 1) {
+                echo '<span class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-2 text-muted-foreground">...</span>';
+            }
+            echo '<a href="?notebook_id=' . $notebook['id'] . '&search=' . urlencode($search ?? '') . '&page=' . $totalPages . '" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 w-9 border border-input bg-background hover:bg-accent hover:text-accent-foreground">' . $totalPages . '</a>';
+        }
+        ?>
     </div>
     <?php endif; ?>
 
