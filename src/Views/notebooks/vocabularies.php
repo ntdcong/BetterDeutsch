@@ -16,6 +16,9 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
                     Học Flashcard
                 </a>
                 <?php if ($isOwner): ?>
+                <button onclick="openImportModal()" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2">
+                    Nhập (Excel/CSV)
+                </button>
                 <button onclick="openVocabModal()" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
                     Thêm từ mới
                 </button>
@@ -36,8 +39,8 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
     <!-- Table -->
     <div class="border rounded-xl bg-card overflow-hidden shadow-sm">
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-                <thead class="bg-muted/50 text-muted-foreground text-xs uppercase font-medium">
+            <table class="w-full text-sm text-left min-w-[800px]">
+                <thead class="bg-muted/50 text-muted-foreground text-xs uppercase font-medium whitespace-nowrap">
                     <tr>
                         <th class="px-4 py-3">Từ vựng</th>
                         <th class="px-4 py-3">Giống/Loại</th>
@@ -57,14 +60,32 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
                         <tr class="hover:bg-muted/50 transition-colors">
                             <td class="px-4 py-3 font-medium"><?= htmlspecialchars($v['word']) ?></td>
                             <td class="px-4 py-3">
-                                <?php if ($v['article']): ?>
-                                    <span class="font-semibold <?php
-                                        if($v['article'] === 'der') echo 'text-blue-600 dark:text-blue-400';
-                                        elseif($v['article'] === 'die') echo 'text-red-500 dark:text-red-400';
-                                        elseif($v['article'] === 'das') echo 'text-green-600 dark:text-green-400';
-                                    ?>"><?= $v['article'] ?></span>
-                                <?php endif; ?>
-                                <span class="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded ml-1"><?= $v['word_type'] ?></span>
+                                <div class="flex items-center gap-2 whitespace-nowrap">
+                                    <?php if ($v['article']): ?>
+                                        <span class="font-semibold <?php
+                                            if($v['article'] === 'der') echo 'text-blue-600 dark:text-blue-400';
+                                            elseif($v['article'] === 'die') echo 'text-red-500 dark:text-red-400';
+                                            elseif($v['article'] === 'das') echo 'text-green-600 dark:text-green-400';
+                                        ?>"><?= $v['article'] ?></span>
+                                    <?php endif; ?>
+                                    <?php
+                                        $typeMap = [
+                                            'noun' => 'Danh từ',
+                                            'verb' => 'Động từ',
+                                            'adj' => 'Tính từ',
+                                            'adv' => 'Trạng từ',
+                                            'prep' => 'Giới từ',
+                                            'pron' => 'Đại từ',
+                                            'conj' => 'Liên từ',
+                                            'article' => 'Mạo từ',
+                                            'phrase' => 'Cụm từ'
+                                        ];
+                                        $displayType = $typeMap[$v['word_type']] ?? $v['word_type'];
+                                        if ($displayType !== 'none' && $displayType !== ''):
+                                    ?>
+                                    <span class="text-[11px] font-medium bg-secondary text-secondary-foreground px-2 py-0.5 rounded-md border border-border/50 shadow-sm"><?= htmlspecialchars($displayType) ?></span>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                             <td class="px-4 py-3"><?= htmlspecialchars($v['plural_form'] ?? '') ?></td>
                             <td class="px-4 py-3"><?= htmlspecialchars($v['translation_vn']) ?></td>
@@ -167,6 +188,30 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
     </div>
 </div>
 
+<!-- Modal: Nhập từ vựng Excel/CSV -->
+<div id="modal-import" class="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-card text-card-foreground shadow-lg border rounded-xl w-full max-w-md animate-in fade-in zoom-in-95 p-6 relative">
+        <button onclick="closeImportModal()" class="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+        <h3 class="font-semibold text-xl tracking-tight mb-4">Nhập từ vựng hàng loạt</h3>
+        <p class="text-sm text-muted-foreground mb-4">Hỗ trợ file .xlsx và .csv. Vui lòng chuẩn bị dữ liệu với các cột: Từ vựng, Nghĩa, Loại từ, Giống, Số nhiều, Giới từ, Ghi chú. <a href="/assets/templates/sample_vocabularies.csv" download class="text-primary hover:underline font-semibold">Tải file mẫu (.csv)</a></p>
+        
+        <form action="/vocabularies/import-preview" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <input type="hidden" name="notebook_id" value="<?= $notebook['id'] ?>">
+            <div class="space-y-2">
+                <label class="text-sm font-medium leading-none">Chọn file Excel hoặc CSV</label>
+                <input type="file" name="import_file" accept=".xlsx, .csv" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            </div>
+            
+            <div class="pt-4 flex gap-2 justify-end">
+                <button type="button" onclick="closeImportModal()" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">Hủy</button>
+                <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">Xem trước</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function openVocabModal() {
     document.getElementById('modal-vocab').classList.remove('hidden');
@@ -192,6 +237,13 @@ function editVocab(v) {
     document.getElementById('vocab_note').value = v.note || '';
     
     openVocabModal();
+}
+
+function openImportModal() {
+    document.getElementById('modal-import').classList.remove('hidden');
+}
+function closeImportModal() {
+    document.getElementById('modal-import').classList.add('hidden');
 }
 </script>
 

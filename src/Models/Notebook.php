@@ -17,7 +17,7 @@ class Notebook
 
     public function getAllForUser(int $userId): array
     {
-        $sql = "SELECT n.*, g.name as group_name FROM notebooks n LEFT JOIN notebook_groups g ON n.notebook_group_id = g.id WHERE n.user_id = :user_id OR n.is_public = 1 OR n.is_admin_updated = 1 ORDER BY n.created_at DESC";
+        $sql = "SELECT n.*, g.name as group_name, (SELECT COUNT(*) FROM vocabularies v WHERE v.notebook_id = n.id) as count FROM notebooks n LEFT JOIN notebook_groups g ON n.notebook_group_id = g.id WHERE n.user_id = :user_id OR n.is_public = 1 OR n.is_admin_updated = 1 ORDER BY n.created_at DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['user_id' => $userId]);
         return $stmt->fetchAll();
@@ -25,7 +25,7 @@ class Notebook
 
     public function findById(int $id): array|false
     {
-        $stmt = $this->db->prepare("SELECT n.*, g.name as group_name FROM notebooks n LEFT JOIN notebook_groups g ON n.notebook_group_id = g.id WHERE n.id = :id LIMIT 1");
+        $stmt = $this->db->prepare("SELECT n.*, g.name as group_name, (SELECT COUNT(*) FROM vocabularies v WHERE v.notebook_id = n.id) as count FROM notebooks n LEFT JOIN notebook_groups g ON n.notebook_group_id = g.id WHERE n.id = :id LIMIT 1");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch();
     }

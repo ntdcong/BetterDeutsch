@@ -8,6 +8,7 @@
         }
     },
     "require": {
-        "php": ">=8.1"
+        "php": ">=8.1",
+        "shuchkin/simplexlsx": "^1.1"
     }
 }

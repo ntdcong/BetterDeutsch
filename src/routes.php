@@ -35,6 +35,8 @@ $router->get('/vocabularies', [VocabularyWebController::class, 'index']);
 $router->post('/vocabularies/create', [VocabularyWebController::class, 'store']);
 $router->post('/vocabularies/update', [VocabularyWebController::class, 'update']);
 $router->post('/vocabularies/delete', [VocabularyWebController::class, 'delete']);
+$router->post('/vocabularies/import-preview', [VocabularyWebController::class, 'importPreview']);
+$router->post('/vocabularies/import', [VocabularyWebController::class, 'import']);
 
 $router->get('/api/vocabularies', [VocabularyController::class, 'getByNotebook']);
 $router->get('/api/verb', [VerbController::class, 'getVerb']);

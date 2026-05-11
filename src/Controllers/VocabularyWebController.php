@@ -118,4 +118,149 @@ class VocabularyWebController extends Controller
 
         $this->redirect("/vocabularies?notebook_id={$notebookId}");
     }
+
+    public function importPreview(): void
+    {
+        if (!Auth::check() || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/notebooks');
+        }
+
+        $notebookId = (int)($_POST['notebook_id'] ?? 0);
+        if ($notebookId <= 0) {
+            $this->redirect('/notebooks');
+        }
+
+        $notebookModel = new Notebook();
+        $notebook = $notebookModel->findById($notebookId);
+        if (!$notebook || $notebook['user_id'] !== Auth::id()) {
+            $this->redirect('/notebooks');
+        }
+
+        if (!isset($_FILES['import_file']) || $_FILES['import_file']['error'] !== UPLOAD_ERR_OK) {
+            \App\Core\Session::setFlash('error', 'Lỗi tải file lên.');
+            $this->redirect("/vocabularies?notebook_id={$notebookId}");
+        }
+
+        $file = $_FILES['import_file'];
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        
+        $data = [];
+        if ($ext === 'csv') {
+            if (($handle = fopen($file['tmp_name'], "r")) !== FALSE) {
+                // Determine delimiter
+                $delimiter = ',';
+                // Read header and first few lines to guess delimiter
+                $line = fgets($handle);
+                if (strpos($line, ';') !== false) $delimiter = ';';
+                elseif (strpos($line, '\t') !== false) $delimiter = "\t";
+                
+                rewind($handle);
+                $header = fgetcsv($handle, 1000, $delimiter);
+                while (($row = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
+                    $data[] = $row;
+                }
+                fclose($handle);
+            }
+        } elseif ($ext === 'xlsx') {
+            if (class_exists('\Shuchkin\SimpleXLSX')) {
+                if ($xlsx = \Shuchkin\SimpleXLSX::parse($file['tmp_name'])) {
+                    $rows = $xlsx->rows();
+                    if (count($rows) > 0) {
+                        array_shift($rows); // Remove header
+                        $data = $rows;
+                    }
+                } else {
+                    \App\Core\Session::setFlash('error', \Shuchkin\SimpleXLSX::parseError());
+                    $this->redirect("/vocabularies?notebook_id={$notebookId}");
+                }
+            } else {
+                 \App\Core\Session::setFlash('error', 'Thư viện đọc file Excel chưa được cài đặt.');
+                 $this->redirect("/vocabularies?notebook_id={$notebookId}");
+            }
+        } else {
+            \App\Core\Session::setFlash('error', 'Định dạng file không hỗ trợ.');
+            $this->redirect("/vocabularies?notebook_id={$notebookId}");
+        }
+
+        $vocabModel = new Vocabulary();
+        $existingVocabs = $vocabModel->getByNotebookId($notebookId);
+        $existingWords = array_column($existingVocabs, 'word');
+        $existingWords = array_map('strtolower', $existingWords);
+
+        $previewData = [];
+        foreach ($data as $index => $row) {
+            $word = trim((string)($row[0] ?? ''));
+            if ($word === '') continue;
+
+            $isDuplicate = in_array(strtolower($word), $existingWords);
+            
+            $previewData[] = [
+                'id' => 'row_' . $index,
+                'word' => $word,
+                'translation_vn' => trim((string)($row[1] ?? '')),
+                'word_type' => trim((string)($row[2] ?? 'none')),
+                'article' => trim((string)($row[3] ?? '')),
+                'plural_form' => trim((string)($row[4] ?? '')),
+                'preposition' => trim((string)($row[5] ?? '')),
+                'note' => trim((string)($row[6] ?? '')),
+                'is_duplicate' => $isDuplicate
+            ];
+        }
+
+        $this->render('notebooks/import_preview', [
+            'title' => 'Xem trước nhập dữ liệu',
+            'notebook' => $notebook,
+            'previewData' => $previewData
+        ]);
+    }
+
+    public function import(): void
+    {
+        if (!Auth::check() || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        $notebookId = (int)($input['notebook_id'] ?? 0);
+        $items = $input['items'] ?? [];
+
+        if ($notebookId <= 0 || empty($items)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Invalid data']);
+            exit;
+        }
+
+        $notebookModel = new Notebook();
+        $notebook = $notebookModel->findById($notebookId);
+        if (!$notebook || $notebook['user_id'] !== Auth::id()) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        $vocabModel = new Vocabulary();
+        $importedCount = 0;
+        foreach ($items as $item) {
+            if (empty($item['word'])) continue;
+            
+            $vocabModel->create([
+                'word' => trim($item['word']),
+                'translation_vn' => trim($item['translation_vn'] ?? ''),
+                'word_type' => !empty($item['word_type']) ? trim($item['word_type']) : 'none',
+                'article' => !empty($item['article']) ? trim($item['article']) : null,
+                'plural_form' => !empty($item['plural_form']) ? trim($item['plural_form']) : null,
+                'preposition' => !empty($item['preposition']) ? trim($item['preposition']) : null,
+                'note' => !empty($item['note']) ? trim($item['note']) : null,
+                'user_id' => Auth::id(),
+                'notebook_id' => $notebookId
+            ]);
+            $importedCount++;
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'count' => $importedCount]);
+        exit;
+    }
 }

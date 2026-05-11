@@ -4,7 +4,7 @@ use App\Core\Auth;
 use App\Core\Security;
 
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
-$useHeader = in_array($path, ['/', '/login', '/register']);
+$useHeader = in_array($path, ['/', '/login', '/register']) && !Auth::check();
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -115,7 +115,8 @@ $useHeader = in_array($path, ['/', '/login', '/register']);
             <div class="container mx-auto flex h-14 max-w-screen-2xl items-center px-4">
                 <div class="mr-4 flex">
                     <a class="mr-6 flex items-center space-x-2" href="/">
-                        <span class="font-bold sm:inline-block">BetterDeutsch</span>
+                        <img src="/assets/images/logo.png" alt="BetterDeutsch Logo" class="h-8 w-auto">
+                        <span class="font-bold sm:inline-block text-xl">BetterDeutsch</span>
                     </a>
                     <nav class="hidden md:flex items-center space-x-6 text-sm font-medium">
                         <a class="transition-colors hover:text-foreground/80 text-foreground/60" href="/">Trang chủ</a>
@@ -173,7 +174,8 @@ $useHeader = in_array($path, ['/', '/login', '/register']);
         <aside class="w-64 border-r border-border bg-card hidden md:flex flex-col sticky top-0 h-screen shrink-0">
             <div class="h-14 flex items-center px-6 border-b border-border shrink-0">
                 <a class="flex items-center space-x-2" href="/">
-                    <span class="font-bold">BetterDeutsch</span>
+                    <img src="/assets/images/logo.png" alt="BetterDeutsch Logo" class="h-8 w-auto">
+                    <span class="font-bold text-xl">BetterDeutsch</span>
                 </a>
             </div>
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
@@ -218,7 +220,8 @@ $useHeader = in_array($path, ['/', '/login', '/register']);
         <aside id="mobile-drawer" class="fixed top-0 left-0 z-50 h-screen w-64 bg-card border-r border-border flex flex-col md:hidden">
             <div class="h-14 flex items-center justify-between px-6 border-b border-border shrink-0">
                 <a class="flex items-center space-x-2" href="/">
-                    <span class="font-bold">BetterDeutsch</span>
+                    <img src="/assets/images/logo.png" alt="BetterDeutsch Logo" class="h-8 w-auto">
+                    <span class="font-bold text-xl">BetterDeutsch</span>
                 </a>
                 <button onclick="closeDrawer()" class="text-muted-foreground hover:text-foreground p-1 rounded-md">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -264,10 +267,10 @@ $useHeader = in_array($path, ['/', '/login', '/register']);
                 <button onclick="openDrawer()" class="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-accent transition-colors shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
                 </button>
-                <a class="flex items-center" href="/">
-                    <span class="font-bold">BetterDeutsch</span>
+                <a class="flex items-center space-x-2" href="/">
+                    <img src="/assets/images/logo.png" alt="BetterDeutsch Logo" class="h-8 w-auto">
+                    <span class="font-bold text-lg">BetterDeutsch</span>
                 </a>
-                <span class="ml-auto text-sm text-muted-foreground truncate max-w-[40%] text-right"><?= htmlspecialchars(ucfirst(trim(str_replace('/', ' ', $path), '/')), ENT_QUOTES, 'UTF-8') ?: 'Trang chủ' ?></span>
             </header>
             <?php endif; ?>
 
