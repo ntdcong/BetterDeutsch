@@ -18,6 +18,10 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
                 <a href="/notebooks/practice?id=<?= $notebook['id'] ?>" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input bg-secondary hover:bg-secondary/80 text-secondary-foreground h-10 px-4 py-2">
                     Luyện tập
                 </a>
+                <button id="btn-export-img" onclick="exportVocabImage()" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2" title="Tải xuống ảnh A4 để chép tay">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                    Tải ảnh A4
+                </button>
                 <?php if ($isOwner): ?>
                 <button onclick="openImportModal()" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2">
                     Nhập (Excel/CSV)
@@ -266,6 +270,155 @@ function openImportModal() {
 }
 function closeImportModal() {
     document.getElementById('modal-import').classList.add('hidden');
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.toString()
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+
+async function exportVocabImage() {
+    const btn = document.getElementById('btn-export-img');
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang tạo...';
+    btn.disabled = true;
+
+    try {
+        if (typeof html2canvas === 'undefined') {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        const res = await fetch('/api/vocabularies?notebook_id=<?= $notebook['id'] ?>');
+        const json = await res.json();
+        const items = json.data || [];
+
+        if (items.length === 0) {
+            alert("Không có từ vựng nào để xuất.");
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.style.position = 'fixed';
+        container.style.left = '-9999px';
+        container.style.top = '0';
+        container.style.width = '794px';
+        container.style.backgroundColor = '#fff';
+        container.style.zIndex = '-1';
+        document.body.appendChild(container);
+
+        const ITEMS_PER_PAGE = 26; 
+        const chunks = [];
+        for (let i = 0; i < items.length; i += ITEMS_PER_PAGE) {
+            chunks.push(items.slice(i, i + ITEMS_PER_PAGE));
+        }
+
+        for (let i = 0; i < chunks.length; i++) {
+            const pageDiv = document.createElement('div');
+            pageDiv.style.width = '794px';
+            pageDiv.style.minHeight = '1123px'; 
+            pageDiv.style.backgroundColor = '#ffffff';
+            pageDiv.style.padding = '40px 50px';
+            pageDiv.style.boxSizing = 'border-box';
+            pageDiv.style.fontFamily = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'; 
+            pageDiv.style.color = '#000000';
+
+            const header = document.createElement('div');
+            header.style.textAlign = 'center';
+            header.style.marginBottom = '24px';
+            header.innerHTML = `
+                <h2 style="font-size: 26px; font-weight: 700; margin: 0 0 8px 0; padding: 0; color: #111827;">TỪ VỰNG: <?= htmlspecialchars(mb_strtoupper($notebook['name'] ?? '', 'UTF-8')) ?></h2>
+                <p style="font-size: 14px; color: #6b7280; margin: 0;">Trang ${i + 1}/${chunks.length} &bull; Tạo từ BetterDeutsch</p>
+            `;
+            pageDiv.appendChild(header);
+
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.fontSize = '14px';
+            
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr style="background-color: #f3f4f6;">
+                    <th style="border: 1px solid #1f2937; padding: 10px 8px; text-align: center; width: 5%; font-weight: 600;">STT</th>
+                    <th style="border: 1px solid #1f2937; padding: 10px 8px; text-align: center; width: 25%; font-weight: 600;">Từ vựng</th>
+                    <th style="border: 1px solid #1f2937; padding: 10px 8px; text-align: center; width: 15%; font-weight: 600;">Số nhiều</th>
+                    <th style="border: 1px solid #1f2937; padding: 10px 8px; text-align: center; width: 30%; font-weight: 600;">Nghĩa tiếng Việt</th>
+                    <th style="border: 1px solid #1f2937; padding: 10px 8px; text-align: center; width: 25%; font-weight: 600;">Ghi chú</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            chunks[i].forEach((v, index) => {
+                const tr = document.createElement('tr');
+                
+                let wordDisplay = `<span style="font-weight: 600; font-size: 15px;">${escapeHtml(v.word)}</span>`;
+                if (v.article) {
+                    const color = v.article === 'der' ? '#2563eb' : (v.article === 'die' ? '#dc2626' : '#16a34a');
+                    wordDisplay = `<span style="color: ${color}; font-weight: 700;">${escapeHtml(v.article)}</span> ` + wordDisplay;
+                }
+                const typeMap = {
+                    'noun': 'Danh từ', 'verb': 'Động từ', 'adj': 'Tính từ', 'adv': 'Trạng từ',
+                    'prep': 'Giới từ', 'pron': 'Đại từ', 'conj': 'Liên từ', 'article': 'Mạo từ', 'phrase': 'Cụm từ'
+                };
+                let typeDisplay = typeMap[v.word_type] || v.word_type;
+                if (typeDisplay && typeDisplay !== 'none') {
+                    wordDisplay += ` <div style="font-size: 12px; color: #4b5563; margin-top: 2px;">(${escapeHtml(typeDisplay)})</div>`;
+                }
+
+                tr.innerHTML = `
+                    <td style="border: 1px solid #1f2937; padding: 8px; text-align: center; color: #374151;">${(i * ITEMS_PER_PAGE) + index + 1}</td>
+                    <td style="border: 1px solid #1f2937; padding: 8px; text-align: center;">${wordDisplay}</td>
+                    <td style="border: 1px solid #1f2937; padding: 8px; text-align: center; color: #1f2937;">${escapeHtml(v.plural_form || '')}</td>
+                    <td style="border: 1px solid #1f2937; padding: 8px; text-align: center; color: #1f2937;">${escapeHtml(v.translation_vn || '')}</td>
+                    <td style="border: 1px solid #1f2937; padding: 8px; text-align: center; color: #4b5563; font-style: italic;">${escapeHtml(v.note || '')}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            pageDiv.appendChild(table);
+            
+            container.appendChild(pageDiv);
+
+            await new Promise(r => setTimeout(r, 150));
+
+            const canvas = await html2canvas(pageDiv, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                logging: false
+            });
+
+            const link = document.createElement('a');
+            const rawName = "<?= addslashes($notebook['name']) ?>";
+            const sanitizedName = rawName.replace(/[\/\\?%*:|"<>]/g, '-');
+            link.download = `Tu_vung_${sanitizedName}_Trang_${i + 1}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            await new Promise(r => setTimeout(r, 600));
+        }
+
+        document.body.removeChild(container);
+
+    } catch (e) {
+        console.error(e);
+        alert('Có lỗi xảy ra khi tạo ảnh.');
+    } finally {
+        btn.innerHTML = oldHtml;
+        btn.disabled = false;
+    }
 }
 </script>
 
