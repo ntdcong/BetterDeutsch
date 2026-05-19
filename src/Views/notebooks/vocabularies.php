@@ -1,9 +1,11 @@
 <?php ob_start(); 
-$isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Auth::id());
+$isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Auth::id()) || \App\Core\Auth::isAdmin();
+$isAdminLayout = !empty($_GET['admin_layout']) && \App\Core\Auth::isAdmin();
+$backUrl = $isAdminLayout ? '/admin/notebooks' : '/notebooks';
 ?>
 <div class="py-12 w-full max-w-6xl mx-auto px-4">
     <div class="mb-8">
-        <a href="/notebooks" class="text-sm font-medium text-muted-foreground hover:text-foreground inline-flex items-center mb-4 transition-colors">
+        <a href="<?= $backUrl ?>" class="text-sm font-medium text-muted-foreground hover:text-foreground inline-flex items-center mb-4 transition-colors">
             ← Trở lại Danh sách sổ tay
         </a>
         <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4">
@@ -11,22 +13,22 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
                 <h2 class="text-3xl font-bold tracking-tight">Từ vựng: <?= htmlspecialchars($notebook['name']) ?></h2>
                 <p class="text-muted-foreground mt-1">Quản lý các từ vựng trong bộ này.</p>
             </div>
-            <div class="flex gap-2">
-                <a href="/notebooks/flashcard?id=<?= $notebook['id'] ?>" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+            <div class="flex flex-wrap gap-2 mt-4 sm:mt-0">
+                <a href="/notebooks/flashcard?id=<?= $notebook['id'] ?>" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 whitespace-nowrap">
                     Học Flashcard
                 </a>
-                <a href="/notebooks/practice?id=<?= $notebook['id'] ?>" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input bg-secondary hover:bg-secondary/80 text-secondary-foreground h-10 px-4 py-2">
+                <a href="/notebooks/practice?id=<?= $notebook['id'] ?>" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input bg-secondary hover:bg-secondary/80 text-secondary-foreground h-10 px-4 py-2 whitespace-nowrap">
                     Luyện tập
                 </a>
-                <button id="btn-export-img" onclick="exportVocabImage()" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2" title="Tải xuống ảnh A4 để chép tay">
+                <button id="btn-export-img" onclick="exportVocabImage()" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 whitespace-nowrap" title="Tải xuống ảnh A4 để chép tay">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                     Tải ảnh A4
                 </button>
                 <?php if ($isOwner): ?>
-                <button onclick="openImportModal()" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2">
+                <button onclick="openImportModal()" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2 whitespace-nowrap">
                     Nhập (Excel/CSV)
                 </button>
-                <button onclick="openVocabModal()" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                <button onclick="openVocabModal()" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 whitespace-nowrap">
                     Thêm từ mới
                 </button>
                 <?php endif; ?>
@@ -34,10 +36,12 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
         </div>
     </div>
 
-    <!-- Search Form -->
     <div class="mb-6 flex gap-2 max-w-sm">
         <form action="/vocabularies" method="GET" class="flex-1 flex gap-2">
             <input type="hidden" name="notebook_id" value="<?= $notebook['id'] ?>">
+            <?php if ($isAdminLayout): ?>
+                <input type="hidden" name="admin_layout" value="1">
+            <?php endif; ?>
             <input type="text" name="search" value="<?= htmlspecialchars($search ?? '') ?>" placeholder="Tìm kiếm từ vựng..." class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2 shrink-0">Tìm</button>
         </form>
@@ -105,6 +109,9 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
                                     <form action="/vocabularies/delete" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc muốn xóa từ này?')">
                                         <input type="hidden" name="id" value="<?= $v['id'] ?>">
                                         <input type="hidden" name="notebook_id" value="<?= $notebook['id'] ?>">
+                                        <?php if ($isAdminLayout): ?>
+                                            <input type="hidden" name="admin_layout" value="1">
+                                        <?php endif; ?>
                                         <button type="submit" class="text-muted-foreground hover:text-destructive transition-colors p-1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
                                     </form>
                                 </div>
@@ -132,7 +139,7 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
         }
 
         for ($i = $startPage; $i <= $endPage; $i++): ?>
-            <a href="?notebook_id=<?= $notebook['id'] ?>&search=<?= urlencode($search ?? '') ?>&page=<?= $i ?>" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 w-9 border <?= $i === $page ? 'border-primary bg-primary text-primary-foreground' : 'border-input bg-background hover:bg-accent hover:text-accent-foreground' ?>">
+            <a href="?notebook_id=<?= $notebook['id'] ?><?= $isAdminLayout ? '&admin_layout=1' : '' ?>&search=<?= urlencode($search ?? '') ?>&page=<?= $i ?>" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 w-9 border <?= $i === $page ? 'border-primary bg-primary text-primary-foreground' : 'border-input bg-background hover:bg-accent hover:text-accent-foreground' ?>">
                 <?= $i ?>
             </a>
         <?php endfor; 
@@ -159,6 +166,9 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
         <form id="form-vocab" action="/vocabularies/create" method="POST" class="space-y-4">
             <input type="hidden" name="id" id="vocab_id">
             <input type="hidden" name="notebook_id" value="<?= $notebook['id'] ?>">
+            <?php if ($isAdminLayout): ?>
+                <input type="hidden" name="admin_layout" value="1">
+            <?php endif; ?>
             
             <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-2 col-span-2 sm:col-span-1">
@@ -424,4 +434,8 @@ async function exportVocabImage() {
 
 <?php
 $content = ob_get_clean();
-require BASE_PATH . '/src/Views/layouts/main.php';
+if ($isAdminLayout) {
+    require BASE_PATH . '/src/Views/layouts/admin.php';
+} else {
+    require BASE_PATH . '/src/Views/layouts/main.php';
+}

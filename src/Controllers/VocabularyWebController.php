@@ -70,7 +70,11 @@ class VocabularyWebController extends Controller
             ]);
         }
 
-        $redirect = $_POST['redirect'] ?? "/vocabularies?notebook_id={$notebookId}";
+        $redirect = trim($_POST['redirect'] ?? '');
+        if ($redirect === '') {
+            $adminLayoutParam = !empty($_POST['admin_layout']) ? '&admin_layout=1' : '';
+            $redirect = "/vocabularies?notebook_id={$notebookId}{$adminLayoutParam}";
+        }
         $this->redirect($redirect);
     }
 
@@ -98,7 +102,11 @@ class VocabularyWebController extends Controller
             ]);
         }
 
-        $redirect = $_POST['redirect'] ?? "/vocabularies?notebook_id={$notebookId}";
+        $redirect = trim($_POST['redirect'] ?? '');
+        if ($redirect === '') {
+            $adminLayoutParam = !empty($_POST['admin_layout']) ? '&admin_layout=1' : '';
+            $redirect = "/vocabularies?notebook_id={$notebookId}{$adminLayoutParam}";
+        }
         $this->redirect($redirect);
     }
 
@@ -116,7 +124,8 @@ class VocabularyWebController extends Controller
             $vocabModel->delete($id);
         }
 
-        $this->redirect("/vocabularies?notebook_id={$notebookId}");
+        $adminLayoutParam = !empty($_POST['admin_layout']) ? '&admin_layout=1' : '';
+        $this->redirect("/vocabularies?notebook_id={$notebookId}{$adminLayoutParam}");
     }
 
     public function importPreview(): void

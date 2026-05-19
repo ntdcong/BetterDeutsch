@@ -142,6 +142,7 @@ function renderNotebookGrid($notebooksList, $groupId = '') {
                     <label class="text-sm font-medium leading-none">Mô tả (Tùy chọn)</label>
                     <textarea name="note" id="notebook_note" placeholder="Mô tả ngắn gọn về sổ tay này..." class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-shadow resize-y"></textarea>
                 </div>
+
                 <div class="pt-4 flex gap-3 justify-end border-t mt-6">
                     <button type="button" onclick="closeModal('modal-notebook')" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">Hủy</button>
                     <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 py-2 shadow-sm">Lưu sổ tay</button>

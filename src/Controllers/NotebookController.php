@@ -38,12 +38,21 @@ class NotebookController extends Controller
         $note = trim($_POST['note'] ?? '');
         $groupId = !empty($_POST['notebook_group_id']) ? (int)$_POST['notebook_group_id'] : null;
 
-        if ($name !== '') {
-            $notebookModel = new Notebook();
-            $notebookModel->create(Auth::id(), $name, $note, $groupId);
+        $isPublic = 0;
+        $isAdminUpdated = 0;
+        if (Auth::isAdmin() && !empty($_POST['is_public'])) {
+            $isPublic = 1;
+            $isAdminUpdated = 1;
         }
 
-        $this->redirect('/notebooks');
+        if ($name !== '') {
+            $notebookModel = new Notebook();
+            $notebookModel->create(Auth::id(), $name, $note, $groupId, $isPublic, $isAdminUpdated);
+        }
+
+        $redirect = trim($_POST['redirect'] ?? '/notebooks');
+        if ($redirect === '') $redirect = '/notebooks';
+        $this->redirect($redirect);
     }
 
     public function update(): void
@@ -57,12 +66,21 @@ class NotebookController extends Controller
         $note = trim($_POST['note'] ?? '');
         $groupId = !empty($_POST['notebook_group_id']) ? (int)$_POST['notebook_group_id'] : null;
 
-        if ($id > 0 && $name !== '') {
-            $notebookModel = new Notebook();
-            $notebookModel->update($id, Auth::id(), $name, $note, $groupId);
+        $isPublic = 0;
+        $isAdminUpdated = 0;
+        if (Auth::isAdmin() && !empty($_POST['is_public'])) {
+            $isPublic = 1;
+            $isAdminUpdated = 1;
         }
 
-        $this->redirect('/notebooks');
+        if ($id > 0 && $name !== '') {
+            $notebookModel = new Notebook();
+            $notebookModel->update($id, Auth::id(), $name, $note, $groupId, $isPublic, $isAdminUpdated, Auth::isAdmin());
+        }
+
+        $redirect = trim($_POST['redirect'] ?? '/notebooks');
+        if ($redirect === '') $redirect = '/notebooks';
+        $this->redirect($redirect);
     }
 
     public function delete(): void
@@ -74,10 +92,12 @@ class NotebookController extends Controller
         $id = (int)($_POST['id'] ?? 0);
         if ($id > 0) {
             $notebookModel = new Notebook();
-            $notebookModel->delete($id, Auth::id());
+            $notebookModel->delete($id, Auth::id(), Auth::isAdmin());
         }
 
-        $this->redirect('/notebooks');
+        $redirect = trim($_POST['redirect'] ?? '/notebooks');
+        if ($redirect === '') $redirect = '/notebooks';
+        $this->redirect($redirect);
     }
 
     public function flashcard(): void

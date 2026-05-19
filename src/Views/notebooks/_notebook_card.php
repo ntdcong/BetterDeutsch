@@ -1,11 +1,11 @@
 <?php
-$isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Auth::id());
+$isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Auth::id()) || \App\Core\Auth::isAdmin();
 ?>
 <div class="rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col transition-all hover:shadow-md hover:border-primary/20 relative group h-full">
     
     <?php if ($isOwner): ?>
     <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-10 bg-card/80 backdrop-blur-sm rounded-md p-1 shadow-sm border">
-        <button onclick="editNotebook(<?= $notebook['id'] ?>, '<?= htmlspecialchars(addslashes($notebook['name'])) ?>', '<?= htmlspecialchars(addslashes($notebook['note'] ?? '')) ?>', '<?= $notebook['notebook_group_id'] ?? '' ?>')" class="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-colors" title="Chỉnh sửa">
+        <button onclick="editNotebook(<?= $notebook['id'] ?>, '<?= htmlspecialchars(addslashes($notebook['name'])) ?>', '<?= htmlspecialchars(addslashes($notebook['note'] ?? '')) ?>', <?= $notebook['notebook_group_id'] ?: 'null' ?>)" class="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-colors" title="Chỉnh sửa">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
         </button>
         <form action="/notebooks/delete" method="POST" class="inline m-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sổ tay này cùng toàn bộ từ vựng bên trong? Hành động không thể hoàn tác.')">
@@ -48,17 +48,17 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
         </div>
     </div>
     
-    <div class="p-6 pt-0 mt-auto flex gap-2">
-        <a href="/notebooks/flashcard?id=<?= $notebook['id'] ?>" class="flex-1 inline-flex items-center justify-center rounded-md text-[13px] font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-2 shadow-sm" title="Học Flashcard">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M21 9H3"/><path d="M9 21V9"/></svg>
+    <div class="p-6 pt-0 mt-auto flex flex-wrap gap-2">
+        <a href="/notebooks/flashcard?id=<?= $notebook['id'] ?>" class="flex-[1_1_auto] inline-flex items-center justify-center rounded-md text-[13px] font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-2 shadow-sm whitespace-nowrap" title="Học Flashcard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 shrink-0"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M21 9H3"/><path d="M9 21V9"/></svg>
             Flashcard
         </a>
-        <a href="/notebooks/practice?id=<?= $notebook['id'] ?>" class="flex-1 inline-flex items-center justify-center rounded-md text-[13px] font-medium transition-colors border border-input bg-secondary hover:bg-secondary/80 text-secondary-foreground h-9 px-2 shadow-sm" title="Luyện tập">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
+        <a href="/notebooks/practice?id=<?= $notebook['id'] ?>" class="flex-[1_1_auto] inline-flex items-center justify-center rounded-md text-[13px] font-medium transition-colors border border-input bg-secondary hover:bg-secondary/80 text-secondary-foreground h-9 px-2 shadow-sm whitespace-nowrap" title="Luyện tập">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 shrink-0"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
             Luyện tập
         </a>
-        <a href="/vocabularies?notebook_id=<?= $notebook['id'] ?>" class="flex-1 inline-flex items-center justify-center rounded-md text-[13px] font-medium transition-colors border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-2" title="Quản lý từ vựng">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        <a href="/vocabularies?notebook_id=<?= $notebook['id'] ?>" class="flex-[1_1_auto] inline-flex items-center justify-center rounded-md text-[13px] font-medium transition-colors border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-2 whitespace-nowrap" title="Quản lý từ vựng">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 shrink-0"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
             Quản lý
         </a>
     </div>

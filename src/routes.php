@@ -10,6 +10,7 @@ use App\Controllers\NotebookGroupController;
 use App\Controllers\VocabularyWebController;
 use App\Controllers\Api\VocabularyController;
 use App\Controllers\Api\VerbController;
+use App\Controllers\AdminController;
 
 $router->get('/', [HomeController::class, 'index']);
 
@@ -41,3 +42,9 @@ $router->post('/vocabularies/import', [VocabularyWebController::class, 'import']
 
 $router->get('/api/vocabularies', [VocabularyController::class, 'getByNotebook']);
 $router->get('/api/verb', [VerbController::class, 'getVerb']);
+
+$router->get('/admin', [AdminController::class, 'index']);
+$router->get('/admin/notebooks', [AdminController::class, 'notebooks']);
+$router->post('/admin/update-role', [AdminController::class, 'updateRole']);
+$router->post('/admin/reset-password', [AdminController::class, 'resetPassword']);
+

@@ -39,7 +39,12 @@ class AuthController extends Controller
         if ($user && password_verify($password, $user['password'])) {
             Auth::login((int)$user['id']);
             Session::setFlash('success', 'Đăng nhập thành công!');
-            $this->redirect('/');
+            
+            if ($user['role'] === 'admin') {
+                $this->redirect('/admin');
+            } else {
+                $this->redirect('/');
+            }
         } else {
             Session::setFlash('error', 'Email hoặc mật khẩu không chính xác.');
             $this->redirect('/login');

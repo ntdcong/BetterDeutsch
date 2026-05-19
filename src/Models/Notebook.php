@@ -23,6 +23,13 @@ class Notebook
         return $stmt->fetchAll();
     }
 
+    public function getAllPublic(): array
+    {
+        $sql = "SELECT n.*, (SELECT COUNT(*) FROM vocabularies v WHERE v.notebook_id = n.id) as count FROM notebooks n WHERE n.is_public = 1 OR n.is_admin_updated = 1 ORDER BY n.created_at DESC";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll();
+    }
+
     public function findById(int $id): array|false
     {
         $stmt = $this->db->prepare("SELECT n.*, g.name as group_name, (SELECT COUNT(*) FROM vocabularies v WHERE v.notebook_id = n.id) as count FROM notebooks n LEFT JOIN notebook_groups g ON n.notebook_group_id = g.id WHERE n.id = :id LIMIT 1");
@@ -30,35 +37,54 @@ class Notebook
         return $stmt->fetch();
     }
 
-    public function create(int $userId, string $name, ?string $note, ?int $groupId): int|false
+    public function create(int $userId, string $name, ?string $note, ?int $groupId, int $isPublic = 0, int $isAdminUpdated = 0): int|false
     {
-        $stmt = $this->db->prepare("INSERT INTO notebooks (user_id, name, note, notebook_group_id) VALUES (:user_id, :name, :note, :group_id)");
+        $stmt = $this->db->prepare("INSERT INTO notebooks (user_id, name, note, notebook_group_id, is_public, is_admin_updated) VALUES (:user_id, :name, :note, :group_id, :is_public, :is_admin_updated)");
         if ($stmt->execute([
             'user_id' => $userId,
             'name' => $name,
             'note' => $note,
-            'group_id' => $groupId
+            'group_id' => $groupId,
+            'is_public' => $isPublic,
+            'is_admin_updated' => $isAdminUpdated
         ])) {
             return (int)$this->db->lastInsertId();
         }
         return false;
     }
 
-    public function update(int $id, int $userId, string $name, ?string $note, ?int $groupId): bool
+    public function update(int $id, int $userId, string $name, ?string $note, ?int $groupId, int $isPublic = 0, int $isAdminUpdated = 0, bool $isAdmin = false): bool
     {
-        $stmt = $this->db->prepare("UPDATE notebooks SET name = :name, note = :note, notebook_group_id = :group_id WHERE id = :id AND user_id = :user_id");
-        return $stmt->execute([
-            'id' => $id,
-            'user_id' => $userId,
-            'name' => $name,
-            'note' => $note,
-            'group_id' => $groupId
-        ]);
+        if ($isAdmin) {
+            $stmt = $this->db->prepare("UPDATE notebooks SET name = :name, note = :note, notebook_group_id = :group_id, is_public = :is_public, is_admin_updated = :is_admin_updated WHERE id = :id");
+            return $stmt->execute([
+                'id' => $id,
+                'name' => $name,
+                'note' => $note,
+                'group_id' => $groupId,
+                'is_public' => $isPublic,
+                'is_admin_updated' => $isAdminUpdated
+            ]);
+        } else {
+            $stmt = $this->db->prepare("UPDATE notebooks SET name = :name, note = :note, notebook_group_id = :group_id WHERE id = :id AND user_id = :user_id");
+            return $stmt->execute([
+                'id' => $id,
+                'user_id' => $userId,
+                'name' => $name,
+                'note' => $note,
+                'group_id' => $groupId
+            ]);
+        }
     }
 
-    public function delete(int $id, int $userId): bool
+    public function delete(int $id, int $userId, bool $isAdmin = false): bool
     {
-        $stmt = $this->db->prepare("DELETE FROM notebooks WHERE id = :id AND user_id = :user_id");
-        return $stmt->execute(['id' => $id, 'user_id' => $userId]);
+        if ($isAdmin) {
+            $stmt = $this->db->prepare("DELETE FROM notebooks WHERE id = :id");
+            return $stmt->execute(['id' => $id]);
+        } else {
+            $stmt = $this->db->prepare("DELETE FROM notebooks WHERE id = :id AND user_id = :user_id");
+            return $stmt->execute(['id' => $id, 'user_id' => $userId]);
+        }
     }
 }

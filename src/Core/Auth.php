@@ -15,6 +15,20 @@ class Auth
         return Session::get('user_id');
     }
 
+    public static function user(): array|false
+    {
+        $id = self::id();
+        if (!$id) return false;
+        $userModel = new \App\Models\User();
+        return $userModel->findById($id);
+    }
+
+    public static function isAdmin(): bool
+    {
+        $user = self::user();
+        return $user && isset($user['role']) && $user['role'] === 'admin';
+    }
+
     public static function login(int $userId): void
     {
         Session::set('user_id', $userId);

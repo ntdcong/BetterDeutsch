@@ -115,16 +115,11 @@ $useHeader = in_array($path, ['/', '/login', '/register']) && !Auth::check();
             <div class="container mx-auto flex h-16 md:h-20 max-w-screen-2xl items-center px-4">
                 <div class="mr-4 flex">
                     <a class="mr-6 flex items-center space-x-2 py-2" href="/">
-                        <img src="/assets/images/logo.png" alt="BetterDeutsch Logo" class="h-10 sm:h-12 md:h-14 w-auto object-contain">                   
+                        <img src="/assets/images/logo.png" alt="BetterDeutsch Logo" class="h-10 sm:h-12 md:h-14 w-auto object-contain">
                     </a>
                     <nav class="hidden md:flex items-center space-x-6 text-sm font-medium">
-                        <a class="transition-colors hover:text-foreground/80 text-foreground/60" href="/">Trang chủ</a>
-                        <a class="transition-colors hover:text-foreground/80 text-foreground/60" href="/lessons">Bài học</a>
-                        <a class="transition-colors hover:text-foreground/80 text-foreground/60" href="/notebooks">Sổ tay</a>
-                        <?php if (Auth::isAdmin()): ?>
-                        <a class="transition-colors hover:text-foreground/80 text-foreground/60 font-bold text-primary" href="/admin">Quản lý Admin</a>
-                        <?php endif; ?>
-                    </nav>
+                        <a class="transition-colors hover:text-foreground/80 text-foreground/60 <?= str_starts_with($path, '/admin') ? 'text-foreground' : '' ?>" href="/admin">Dashboard Admin</a>
+                        <a class="transition-colors hover:text-primary/80 text-primary font-bold ml-6" href="/">Chuyển sang Web Người dùng &rarr;</a>
                 </div>
                 <div class="flex flex-1 items-center justify-end space-x-2">
                     <nav class="flex items-center space-x-2">
@@ -180,24 +175,21 @@ $useHeader = in_array($path, ['/', '/login', '/register']) && !Auth::check();
                 </a>
             </div>
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors <?= $path === '/' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground' ?>" href="/">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                    Trang chủ
-                </a>
-                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors <?= str_starts_with($path, '/lessons') ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground' ?>" href="/lessons">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-                    Bài học
-                </a>
-                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors <?= str_starts_with($path, '/notebooks') ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground' ?>" href="/notebooks">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                    Sổ tay
-                </a>
-                <?php if (Auth::isAdmin()): ?>
-                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors <?= str_starts_with($path, '/admin') ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground' ?>" href="/admin">
+                <div class="px-3 py-2 mb-2">
+                    <h2 class="px-2 text-lg font-semibold tracking-tight text-primary">Admin Control</h2>
+                </div>
+                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors <?= $path === '/admin' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground' ?>" href="/admin">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    Admin
+                    Người dùng hệ thống
                 </a>
-                <?php endif; ?>
+                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors <?= str_starts_with($path, '/admin/notebooks') ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground' ?>" href="/admin/notebooks">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    Sổ tay chung
+                </a>
+                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors mt-6 text-muted-foreground hover:bg-accent/50 hover:text-foreground border border-input bg-background" href="/">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+                    Web Người dùng
+                </a>
             </nav>
             <div class="p-4 mt-auto border-t border-border shrink-0">
                 <?php if (Auth::check()): ?>
@@ -234,24 +226,21 @@ $useHeader = in_array($path, ['/', '/login', '/register']) && !Auth::check();
                 </button>
             </div>
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors <?= $path === '/' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground' ?>" href="/">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                    Trang chủ
-                </a>
-                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors <?= str_starts_with($path, '/lessons') ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground' ?>" href="/lessons">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-                    Bài học
-                </a>
-                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors <?= str_starts_with($path, '/notebooks') ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground' ?>" href="/notebooks">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                    Sổ tay
-                </a>
-                <?php if (Auth::isAdmin()): ?>
-                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors <?= str_starts_with($path, '/admin') ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground' ?>" href="/admin">
+                <div class="px-3 py-2 mb-2">
+                    <h2 class="px-2 text-lg font-semibold tracking-tight text-primary">Admin Control</h2>
+                </div>
+                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors <?= $path === '/admin' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground' ?>" href="/admin">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    Admin
+                    Người dùng hệ thống
                 </a>
-                <?php endif; ?>
+                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors <?= str_starts_with($path, '/admin/notebooks') ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground' ?>" href="/admin/notebooks">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    Sổ tay chung
+                </a>
+                <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors mt-6 text-muted-foreground hover:bg-accent/50 hover:text-foreground border border-input bg-background" href="/">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+                    Web Người dùng
+                </a>
             </nav>
             <div class="p-4 pb-12 border-t border-border shrink-0">
                 <?php if (Auth::check()): ?>
