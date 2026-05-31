@@ -78,7 +78,7 @@ declare(strict_types=1);
             overflow: hidden;
         }
         
-        .card-back { transform: rotateY(180deg); overflow-y: auto; }
+        .card-back { transform: rotateY(180deg); overflow: hidden; }
         
         /* Modal */
         #verb-modal { transition: opacity 0.3s ease; }

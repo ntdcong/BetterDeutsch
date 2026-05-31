@@ -81,38 +81,38 @@ document.addEventListener('DOMContentLoaded', () => {
                     <!-- Front -->
                     <div class="card-front items-center justify-center p-6 text-center">
                         ${speakerHtml}
-                        <div class="flex-1 flex flex-col items-center justify-center w-full">
-                            ${vocab.article ? `<div class="font-bold text-3xl md:text-4xl mb-4 ${articleClass}">${vocab.article}</div>` : ''}
-                            <div class="font-extrabold text-foreground leading-tight" style="font-size: clamp(2rem, 8vw, 4rem); word-break: keep-all; overflow-wrap: break-word;">
+                        <div class="flex-1 flex flex-col items-center justify-center w-full min-h-0">
+                            ${vocab.article ? `<div class="font-bold text-2xl sm:text-3xl mb-3 ${articleClass}">${vocab.article}</div>` : ''}
+                            <div class="main-text font-extrabold text-foreground leading-tight text-center w-full break-words" style="word-break: break-word; font-size: 2.25rem;">
                                 ${vocab.word}
                             </div>
                         </div>
-                        <div class="mt-auto pt-6 text-sm text-muted-foreground animate-pulse">Chạm hoặc nhấn Space để lật</div>
+                        <div class="mt-auto pt-4 text-xs sm:text-sm text-muted-foreground animate-pulse">Chạm hoặc nhấn Space để lật</div>
                     </div>
                     <!-- Back -->
-                    <div class="card-back p-6 sm:p-8 ${backBgClass}">
-                        ${wordTypeVn ? `<div class="absolute top-4 right-4 sm:top-6 sm:right-6 text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-md bg-white border shadow-sm text-muted-foreground z-10">${wordTypeVn}</div>` : ''}
+                    <div class="card-back p-4 sm:p-6 ${backBgClass}">
+                        ${wordTypeVn ? `<div class="absolute top-3 right-3 sm:top-4 sm:right-4 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded bg-white border shadow-sm text-muted-foreground z-10">${wordTypeVn}</div>` : ''}
                         
-                        <div class="w-full h-full flex flex-col justify-center items-center text-center mt-2">
-                            <div class="font-bold text-4xl sm:text-5xl mb-6 text-foreground break-words leading-tight" style="max-width: 100%; word-break: keep-all; overflow-wrap: break-word;">${vocab.translation_vn}</div>
+                        <div class="flex-1 w-full flex flex-col justify-center items-center text-center min-h-0">
+                            <div class="main-text font-bold text-3xl sm:text-4xl mb-4 text-foreground break-words leading-tight text-center w-full" style="word-break: break-word; text-align: center;">${vocab.translation_vn}</div>
                             
-                            <div class="flex flex-wrap justify-center gap-3">
-                                ${vocab.plural_form ? `<div class="text-sm bg-white border px-4 py-2 rounded-lg shadow-sm"><span class="text-muted-foreground mr-1">Số nhiều:</span><span class="font-bold">${vocab.plural_form}</span></div>` : ''}
-                                ${vocab.preposition ? `<div class="text-sm bg-white border px-4 py-2 rounded-lg shadow-sm"><span class="text-muted-foreground mr-1">Giới từ:</span><span class="font-bold">${vocab.preposition}</span></div>` : ''}
+                            <div class="flex flex-wrap justify-center gap-2 mb-3">
+                                ${vocab.plural_form ? `<div class="text-xs bg-white border px-3 py-1.5 rounded-lg shadow-sm"><span class="text-muted-foreground mr-1">Số nhiều:</span><span class="font-bold">${vocab.plural_form}</span></div>` : ''}
+                                ${vocab.preposition ? `<div class="text-xs bg-white border px-3 py-1.5 rounded-lg shadow-sm"><span class="text-muted-foreground mr-1">Giới từ:</span><span class="font-bold">${vocab.preposition}</span></div>` : ''}
                             </div>
                             
-                            ${vocab.note ? `<div class="mt-8 text-sm text-muted-foreground italic bg-white/60 p-4 rounded-lg max-w-sm w-full border border-white/40">${vocab.note}</div>` : ''}
+                            ${vocab.note ? `<div class="note-text text-xs text-muted-foreground italic bg-white/60 p-2.5 rounded-lg max-w-sm w-full border border-white/40 line-clamp-3 overflow-y-auto custom-scrollbar">${vocab.note}</div>` : ''}
                             
-                            <div class="mt-10 flex gap-2 justify-center flex-wrap z-20">
+                            <div class="mt-4 flex gap-2 justify-center flex-wrap z-20">
                                 ${vocab.word_type === 'verb' ? `
-                                <button class="btn-verb-lookup inline-flex items-center justify-center rounded-full text-sm font-medium border bg-white text-primary hover:bg-muted h-12 px-6 transition-colors shadow-sm active:scale-95" data-word="${vocab.word}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                                <button class="btn-verb-lookup inline-flex items-center justify-center rounded-full text-xs font-medium border bg-white text-primary hover:bg-muted h-9 px-4 transition-colors shadow-sm active:scale-95" data-word="${vocab.word}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
                                     Tra cứu
                                 </button>
                                 ` : ''}
                                 
-                                <button class="btn-edit-vocab inline-flex items-center justify-center rounded-full text-sm font-medium border bg-white text-muted-foreground hover:bg-muted h-12 px-6 transition-colors shadow-sm active:scale-95" data-index="${currentIndex + indexOffset}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                <button class="btn-edit-vocab inline-flex items-center justify-center rounded-full text-xs font-medium border bg-white text-muted-foreground hover:bg-muted h-9 px-4 transition-colors shadow-sm active:scale-95" data-index="${currentIndex + indexOffset}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                                     Sửa
                                 </button>
                             </div>
@@ -134,6 +134,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         bindCardEvents();
+        fitAllCards();
+    }
+
+    function fitAllCards() {
+        const cards = document.querySelectorAll('.card-front, .card-back');
+        cards.forEach(card => {
+            const mainText = card.querySelector('.main-text');
+            if (!mainText) return;
+
+            const isFront = card.classList.contains('card-front');
+            // Base max size depending on viewport
+            let maxFontSize = isFront ? 40 : 32;
+            if (window.innerWidth < 640) {
+                maxFontSize = isFront ? 32 : 24;
+            }
+
+            let fontSize = maxFontSize;
+            mainText.style.fontSize = fontSize + 'px';
+            mainText.style.lineHeight = '1.2';
+
+            const minFontSize = 14;
+            let safety = 0;
+            // Temporarily set overflow hidden to check clientHeight properly
+            const originalOverflowY = card.style.overflowY;
+            card.style.overflowY = 'hidden';
+
+            while ((card.scrollHeight > card.clientHeight) && fontSize > minFontSize && safety < 100) {
+                fontSize -= 1;
+                mainText.style.fontSize = fontSize + 'px';
+                safety++;
+            }
+
+            card.style.overflowY = originalOverflowY;
+        });
     }
 
     function bindCardEvents() {
@@ -494,4 +528,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(fitAllCards, 150);
+    });
 });
