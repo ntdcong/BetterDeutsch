@@ -179,6 +179,28 @@ class NotebookController extends Controller
         ]);
     }
 
+    public function sharedIndex(): void
+    {
+        $token = $_GET['token'] ?? '';
+        if (empty($token)) {
+            $this->redirect('/');
+        }
+
+        $notebookModel = new Notebook();
+        $notebook = $notebookModel->findByShareToken($token);
+
+        if (!$notebook) {
+            echo "Đường dẫn không hợp lệ hoặc sổ tay đã bị tắt chia sẻ.";
+            return;
+        }
+
+        $this->render('notebooks/shared_index', [
+            'title' => 'Chia sẻ: ' . htmlspecialchars($notebook['name'], ENT_QUOTES, 'UTF-8'),
+            'notebook' => $notebook,
+            'shareToken' => $token
+        ]);
+    }
+
     public function sharedFlashcard(): void
     {
         $token = $_GET['token'] ?? '';

@@ -12,7 +12,18 @@ class VerbController
     {
         header('Content-Type: application/json; charset=utf-8');
 
-        if (!Auth::check()) {
+        $shareToken = $_GET['token'] ?? '';
+        $isAuthenticated = Auth::check();
+        $isSharedValid = false;
+
+        if (!empty($shareToken)) {
+            $notebookModel = new \App\Models\Notebook();
+            if ($notebookModel->findByShareToken($shareToken)) {
+                $isSharedValid = true;
+            }
+        }
+
+        if (!$isAuthenticated && !$isSharedValid) {
             http_response_code(401);
             echo json_encode(['error' => 'Unauthorized']);
             return;

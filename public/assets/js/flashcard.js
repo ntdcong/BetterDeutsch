@@ -372,7 +372,12 @@ document.addEventListener('DOMContentLoaded', () => {
         verbTitle.textContent = `Động từ: ${word}`;
         verbBody.innerHTML = '<div class="text-center py-8 text-muted-foreground animate-pulse">Đang tra cứu...</div>';
 
-        fetch(`/api/verb?word=${encodeURIComponent(word)}`)
+        let verbFetchUrl = `/api/verb?word=${encodeURIComponent(word)}`;
+        if (isShared && shareToken) {
+            verbFetchUrl += `&token=${shareToken}`;
+        }
+
+        fetch(verbFetchUrl)
             .then(res => res.json())
             .then(data => {
                 if (data.error || !data.data) {

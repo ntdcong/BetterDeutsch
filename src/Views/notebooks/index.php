@@ -234,19 +234,20 @@ function renderNotebookGrid($notebooksList, $groupId = '') {
                 </button>
             </div>
 
-            <div id="share-link-container" class="hidden space-y-3 mt-4">
-                <div>
-                    <label class="text-xs font-medium text-foreground">Link học Flashcard</label>
+            <div id="share-link-container" class="hidden flex-col items-center space-y-4 mt-4 w-full">
+                <div class="w-full">
+                    <label class="text-xs font-medium text-foreground">Link học chung (Flashcard & Luyện tập)</label>
                     <div class="flex gap-2 mt-1">
-                        <input type="text" id="share-link-flashcard" readonly class="flex h-9 w-full rounded-md border border-input bg-muted px-3 py-1 text-sm shadow-sm" value="">
-                        <button onclick="copyShareLink('share-link-flashcard')" class="inline-flex items-center justify-center rounded-md text-sm font-medium border bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3">Copy</button>
+                        <input type="text" id="share-link-main" readonly class="flex h-9 w-full rounded-md border border-input bg-muted px-3 py-1 text-sm shadow-sm" value="">
+                        <button onclick="copyShareLink('share-link-main')" class="inline-flex items-center justify-center rounded-md text-sm font-medium border bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 shrink-0">Copy</button>
                     </div>
                 </div>
-                <div>
-                    <label class="text-xs font-medium text-foreground">Link Luyện tập</label>
-                    <div class="flex gap-2 mt-1">
-                        <input type="text" id="share-link-practice" readonly class="flex h-9 w-full rounded-md border border-input bg-muted px-3 py-1 text-sm shadow-sm" value="">
-                        <button onclick="copyShareLink('share-link-practice')" class="inline-flex items-center justify-center rounded-md text-sm font-medium border bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3">Copy</button>
+                
+                <div class="flex flex-col items-center justify-center border-t border-border pt-4 w-full">
+                    <p class="text-xs font-medium text-muted-foreground mb-3">Hoặc quét mã QR</p>
+                    <div class="bg-white p-2 rounded-xl border shadow-sm">
+                        <img id="share-qr-code" src="" alt="QR Code" class="w-32 h-32 object-contain hidden" onload="this.classList.remove('hidden')">
+                        <div id="qr-placeholder" class="w-32 h-32 flex items-center justify-center text-xs text-muted-foreground bg-muted rounded-lg">Đang tạo...</div>
                     </div>
                 </div>
             </div>
@@ -297,25 +298,35 @@ function updateShareUI(isShared, token) {
     const btn = document.getElementById('btn-toggle-share');
     const statusText = document.getElementById('share-status-text');
     const linkContainer = document.getElementById('share-link-container');
-    const inputFlashcard = document.getElementById('share-link-flashcard');
-    const inputPractice = document.getElementById('share-link-practice');
+    const inputMain = document.getElementById('share-link-main');
+    const qrCode = document.getElementById('share-qr-code');
+    const qrPlaceholder = document.getElementById('qr-placeholder');
 
     if (isShared) {
         knob.classList.replace('translate-x-1', 'translate-x-6');
         btn.classList.replace('bg-muted', 'bg-primary');
         statusText.textContent = 'Đang bật';
         statusText.classList.add('text-primary');
-        linkContainer.classList.remove('hidden');
+        linkContainer.classList.replace('hidden', 'flex');
         
         const baseUrl = window.location.origin;
-        inputFlashcard.value = `${baseUrl}/shared/flashcard?token=${token}`;
-        inputPractice.value = `${baseUrl}/shared/practice?token=${token}`;
+        const shareUrl = `${baseUrl}/shared?token=${token}`;
+        inputMain.value = shareUrl;
+        
+        // Generate QR code via API
+        qrCode.classList.add('hidden');
+        qrPlaceholder.classList.remove('hidden');
+        qrCode.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(shareUrl)}&margin=1`;
+        qrCode.onload = () => {
+            qrCode.classList.remove('hidden');
+            qrPlaceholder.classList.add('hidden');
+        };
     } else {
         knob.classList.replace('translate-x-6', 'translate-x-1');
         btn.classList.replace('bg-primary', 'bg-muted');
         statusText.textContent = 'Đang tắt';
         statusText.classList.remove('text-primary');
-        linkContainer.classList.add('hidden');
+        linkContainer.classList.replace('flex', 'hidden');
     }
 }
 
