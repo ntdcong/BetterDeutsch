@@ -69,14 +69,20 @@ declare(strict_types=1);
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans text-foreground" id="practice-app" data-notebook-id="<?= $notebook['id'] ?>">
+<body class="min-h-screen flex flex-col font-sans text-foreground" id="practice-app" data-notebook-id="<?= $notebook['id'] ?>" data-is-shared="<?= !empty($isSharedView) ? '1' : '0' ?>" data-share-token="<?= htmlspecialchars($shareToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
     <!-- Top Bar -->
     <div class="flex items-center justify-between p-4 bg-white/80 backdrop-blur border-b border-border sticky top-0 z-10">
         <div class="flex items-center gap-2">
+            <?php if (empty($isSharedView)): ?>
             <a href="/notebooks" class="text-sm font-medium text-muted-foreground hover:text-foreground inline-flex items-center transition-colors" id="btn-back">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
                 <span class="hidden sm:inline">Trở lại</span>
             </a>
+            <?php else: ?>
+            <div class="text-sm font-medium text-primary inline-flex items-center" id="btn-back-shared">
+                BetterDeutsch
+            </div>
+            <?php endif; ?>
         </div>
         
         <div class="text-center text-lg font-extrabold tracking-tight text-foreground truncate px-4 flex-1">

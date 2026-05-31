@@ -87,4 +87,34 @@ class Notebook
             return $stmt->execute(['id' => $id, 'user_id' => $userId]);
         }
     }
+
+    public function findByShareToken(string $token): array|false
+    {
+        $stmt = $this->db->prepare("SELECT n.*, g.name as group_name, (SELECT COUNT(*) FROM vocabularies v WHERE v.notebook_id = n.id) as count FROM notebooks n LEFT JOIN notebook_groups g ON n.notebook_group_id = g.id WHERE n.share_token = :token AND n.is_shared = 1 LIMIT 1");
+        $stmt->execute(['token' => $token]);
+        return $stmt->fetch();
+    }
+
+    public function toggleShare(int $id, int $userId): ?string
+    {
+        // Get current status
+        $stmt = $this->db->prepare("SELECT is_shared FROM notebooks WHERE id = :id AND user_id = :user_id LIMIT 1");
+        $stmt->execute(['id' => $id, 'user_id' => $userId]);
+        $row = $stmt->fetch();
+
+        if (!$row) return null; // Not found or not owner
+
+        if ($row['is_shared'] == 1) {
+            // Turn off
+            $update = $this->db->prepare("UPDATE notebooks SET is_shared = 0, share_token = NULL WHERE id = :id");
+            $update->execute(['id' => $id]);
+            return "";
+        } else {
+            // Turn on
+            $token = bin2hex(random_bytes(16));
+            $update = $this->db->prepare("UPDATE notebooks SET is_shared = 1, share_token = :token WHERE id = :id");
+            $update->execute(['id' => $id, 'token' => $token]);
+            return $token;
+        }
+    }
 }

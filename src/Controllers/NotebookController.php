@@ -145,4 +145,84 @@ class NotebookController extends Controller
             'notebook' => $notebook
         ]);
     }
+
+    public function toggleShare(): void
+    {
+        if (!Auth::check() || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(401);
+            echo json_encode(['error' => 'Unauthorized']);
+            return;
+        }
+
+        header('Content-Type: application/json');
+        
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid notebook']);
+            return;
+        }
+
+        $notebookModel = new Notebook();
+        $token = $notebookModel->toggleShare($id, Auth::id());
+
+        if ($token === null) {
+            http_response_code(403);
+            echo json_encode(['error' => 'Permission denied']);
+            return;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'is_shared' => $token !== "",
+            'share_token' => $token
+        ]);
+    }
+
+    public function sharedFlashcard(): void
+    {
+        $token = $_GET['token'] ?? '';
+        if (empty($token)) {
+            $this->redirect('/');
+        }
+
+        $notebookModel = new Notebook();
+        $notebook = $notebookModel->findByShareToken($token);
+
+        if (!$notebook) {
+            // Either invalid token or sharing is disabled
+            echo "Đường dẫn không hợp lệ hoặc sổ tay đã bị tắt chia sẻ.";
+            return;
+        }
+
+        $this->render('notebooks/flashcard', [
+            'title' => 'Học Flashcard: ' . htmlspecialchars($notebook['name'], ENT_QUOTES, 'UTF-8'),
+            'notebook' => $notebook,
+            'isSharedView' => true,
+            'shareToken' => $token
+        ]);
+    }
+
+    public function sharedPractice(): void
+    {
+        $token = $_GET['token'] ?? '';
+        if (empty($token)) {
+            $this->redirect('/');
+        }
+
+        $notebookModel = new Notebook();
+        $notebook = $notebookModel->findByShareToken($token);
+
+        if (!$notebook) {
+            echo "Đường dẫn không hợp lệ hoặc sổ tay đã bị tắt chia sẻ.";
+            return;
+        }
+
+        $this->render('notebooks/practice', [
+            'title' => 'Luyện tập: ' . htmlspecialchars($notebook['name'], ENT_QUOTES, 'UTF-8'),
+            'notebook' => $notebook,
+            'isSharedView' => true,
+            'shareToken' => $token
+        ]);
+    }
 }

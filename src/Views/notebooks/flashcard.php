@@ -95,13 +95,19 @@ declare(strict_types=1);
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="h-screen flex flex-col font-sans text-foreground select-none" id="flashcard-app" data-notebook-id="<?= $notebook['id'] ?>">
+<body class="h-screen flex flex-col font-sans text-foreground select-none" id="flashcard-app" data-notebook-id="<?= $notebook['id'] ?>" data-is-shared="<?= !empty($isSharedView) ? '1' : '0' ?>" data-share-token="<?= htmlspecialchars($shareToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
     <!-- Top Bar -->
     <div class="flex items-center justify-between p-3 sm:p-4 bg-white/50 backdrop-blur border-b border-border z-10 shrink-0 gap-2">
+        <?php if (empty($isSharedView)): ?>
         <a href="/notebooks" class="text-sm font-medium text-muted-foreground hover:text-foreground inline-flex items-center transition-colors shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
             <span class="hidden sm:inline">Sổ tay</span>
         </a>
+        <?php else: ?>
+        <div class="text-sm font-medium text-primary inline-flex items-center shrink-0">
+            BetterDeutsch
+        </div>
+        <?php endif; ?>
         
         <div class="flex-1 text-center text-base sm:text-lg font-extrabold tracking-tight text-foreground truncate px-2">
             <?= htmlspecialchars($notebook['name'] ?? 'Học Flashcard', ENT_QUOTES, 'UTF-8') ?>
@@ -111,9 +117,11 @@ declare(strict_types=1);
             <button id="toggle-autoplay-btn" class="text-xs font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg px-2 py-1.5 inline-flex items-center transition-colors whitespace-nowrap" title="Bật/Tắt tự động đọc">
                 Phát âm: Thủ công
             </button>
+            <?php if (empty($isSharedView)): ?>
             <button onclick="openVocabModal()" class="inline-flex items-center justify-center rounded-lg text-xs sm:text-sm font-medium bg-primary text-primaryForeground hover:bg-primary/90 h-8 sm:h-9 px-2 sm:px-4 shadow-sm transition-all active:scale-95 text-white">
                 <span class="sm:hidden">+</span><span class="hidden sm:inline">Thêm từ mới</span>
             </button>
+            <?php endif; ?>
         </div>
     </div>
  

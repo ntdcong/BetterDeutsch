@@ -1,5 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const notebookId = document.getElementById('practice-app').dataset.notebookId;
+    const app = document.getElementById('practice-app');
+    const notebookId = app.dataset.notebookId;
+    const isShared = app.dataset.isShared === '1';
+    const shareToken = app.dataset.shareToken || '';
+    
     const loadingState = document.getElementById('loading-state');
     const menuState = document.getElementById('menu-state');
     const quizState = document.getElementById('quiz-state');
@@ -14,14 +18,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let score = { correct: 0, incorrect: 0 };
     let timerInterval = null;
 
+    let fetchUrl = `/api/vocabularies?notebook_id=${notebookId}`;
+    if (isShared && shareToken) {
+        fetchUrl += `&token=${shareToken}`;
+    }
+
     // Fetch data
-    fetch(`/api/vocabularies?notebook_id=${notebookId}`)
+    fetch(fetchUrl)
         .then(response => response.json())
         .then(data => {
             vocabularies = data.data || [];
             loadingState.classList.add('hidden');
             if (vocabularies.length < 4) {
-                menuState.innerHTML = `<div class="text-center py-10"><p class="text-xl text-red-500 mb-4">Cần ít nhất 4 từ vựng để luyện tập!</p><a href="/vocabularies?notebook_id=${notebookId}" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground h-10 px-4 py-2">Thêm từ vựng</a></div>`;
+                if (isShared) {
+                    menuState.innerHTML = `<div class="text-center py-10"><p class="text-xl text-red-500 mb-4">Sổ tay này chưa có đủ từ vựng để luyện tập (cần ít nhất 4 từ)!</p></div>`;
+                } else {
+                    menuState.innerHTML = `<div class="text-center py-10"><p class="text-xl text-red-500 mb-4">Cần ít nhất 4 từ vựng để luyện tập!</p><a href="/vocabularies?notebook_id=${notebookId}" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground h-10 px-4 py-2">Thêm từ vựng</a></div>`;
+                }
                 menuState.classList.remove('hidden');
                 menuState.classList.add('flex');
             } else {
@@ -33,11 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingState.innerHTML = '<p class="text-red-500">Lỗi khi tải dữ liệu!</p>';
         });
 
-    window.showMenu = function() {
+    window.showMenu = function () {
         hideAllStates();
         menuState.classList.remove('hidden');
         menuState.classList.add('flex');
-        btnBack.href = '/notebooks';
+        if (btnBack) btnBack.href = '/notebooks';
     };
 
     function hideAllStates() {
@@ -53,11 +66,15 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(timerInterval);
     }
 
-    window.startMode = function(mode) {
+    window.startMode = function (mode) {
         currentMode = mode;
         score = { correct: 0, incorrect: 0 };
-        btnBack.href = "javascript:showMenu()";
-        
+        if (btnBack) btnBack.href = "javascript:showMenu()";
+        const btnBackShared = document.getElementById('btn-back-shared');
+        if (btnBackShared) {
+            btnBackShared.innerHTML = `<a href="javascript:showMenu()" class="hover:underline">Quay lại menu</a>`;
+        }
+
         if (mode === 'quiz_meaning') {
             initQuizMeaning();
         } else if (mode === 'quiz_article') {
@@ -98,15 +115,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const q = questions[currentQuestionIndex];
         document.getElementById('quiz-progress-text').textContent = `Câu ${currentQuestionIndex + 1}/${questions.length}`;
         document.getElementById('quiz-progress-bar').style.width = `${((currentQuestionIndex) / questions.length) * 100}%`;
-        
+
         document.getElementById('quiz-question').textContent = q.question;
         document.getElementById('quiz-hint').textContent = q.hint || '';
-        
+
         const optionsContainer = document.getElementById('quiz-options');
         const writingContainer = document.getElementById('quiz-writing-container');
         const feedback = document.getElementById('quiz-feedback');
         const btnNext = document.getElementById('btn-next-quiz');
-        
+
         feedback.classList.add('hidden');
         btnNext.classList.add('hidden');
 
@@ -118,11 +135,11 @@ document.addEventListener('DOMContentLoaded', () => {
             input.value = '';
             input.disabled = false;
             input.focus();
-            
+
             // Remove old listeners
             const newBtnSubmit = document.getElementById('btn-submit-writing').cloneNode(true);
             document.getElementById('btn-submit-writing').replaceWith(newBtnSubmit);
-            
+
             newBtnSubmit.addEventListener('click', () => checkWritingAnswer(input.value.trim(), q.answer, input));
             input.onkeydown = (e) => {
                 if (e.key === 'Enter') newBtnSubmit.click();
@@ -132,13 +149,13 @@ document.addEventListener('DOMContentLoaded', () => {
             writingContainer.classList.add('hidden');
             optionsContainer.classList.remove('hidden');
             optionsContainer.innerHTML = '';
-            
+
             q.options.forEach((opt, idx) => {
                 const btn = document.createElement('button');
                 btn.className = 'w-full p-4 rounded-xl border-2 border-border bg-card text-left font-semibold hover:bg-secondary transition-colors text-lg flex items-center justify-between group';
                 btn.innerHTML = `
                     <span>${opt}</span>
-                    <span class="w-6 h-6 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center text-xs text-transparent group-hover:border-primary"></span>
+                    <span class="w-6 h-6 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center text-xs group-hover:border-primary"></span>
                 `;
                 btn.onclick = () => checkQuizAnswer(opt, q.answer, btn, optionsContainer);
                 optionsContainer.appendChild(btn);
@@ -149,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleQuizResult(isCorrect, feedbackMsg) {
         const feedback = document.getElementById('quiz-feedback');
         const btnNext = document.getElementById('btn-next-quiz');
-        
+
         feedback.classList.remove('hidden');
         if (isCorrect) {
             score.correct++;
@@ -161,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
             feedback.className = 'mt-4 w-full p-4 rounded-xl font-bold text-center text-red-700 bg-red-100 border border-red-200';
             feedback.innerHTML = `Sai rồi! <span class="text-sm font-normal block mt-1">${feedbackMsg || ''}</span>`;
         }
-        
+
         btnNext.classList.remove('hidden');
         btnNext.onclick = () => {
             currentQuestionIndex++;
@@ -174,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function checkQuizAnswer(selected, correct, btn, container) {
         Array.from(container.children).forEach(b => b.disabled = true);
         const isCorrect = selected === correct;
-        
+
         if (isCorrect) {
             btn.classList.replace('border-border', 'border-green-500');
             btn.classList.replace('bg-card', 'bg-green-50');
@@ -185,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.replace('bg-card', 'bg-red-50');
             btn.querySelector('span:last-child').innerHTML = '✗';
             btn.querySelector('span:last-child').classList.add('text-red-600', 'border-red-500');
-            
+
             // Highlight correct answer
             Array.from(container.children).forEach(b => {
                 if (b.innerText.trim() === correct) {
@@ -194,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
-        
+
         handleQuizResult(isCorrect, isCorrect ? 'Tuyệt vời!' : `Đáp án đúng là: ${correct}`);
     }
 
@@ -203,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Accept exact match or match without article
         let isCorrect = false;
         let matchedAns = '';
-        
+
         const normalizedTyped = typed.toLowerCase().trim();
         for (let ans of correctAnswers) {
             if (normalizedTyped === ans.toLowerCase().trim()) {
@@ -212,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             }
         }
-        
+
         if (isCorrect) {
             inputEl.classList.replace('border-input', 'border-green-500');
             inputEl.classList.add('bg-green-50', 'text-green-700');
@@ -220,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
             inputEl.classList.replace('border-input', 'border-red-500');
             inputEl.classList.add('bg-red-50', 'text-red-700');
         }
-        
+
         handleQuizResult(isCorrect, isCorrect ? 'Chính xác!' : `Đáp án đúng là: ${correctAnswers[0]}`);
     }
 
@@ -235,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 hint: type === 'vi2de' ? 'Tiếng Đức là gì?' : 'Nghĩa tiếng Việt là gì?',
                 options: []
             };
-            
+
             // Generate wrong options
             let wrongs = vocabularies.filter(x => x.id !== v.id);
             wrongs = shuffle(wrongs).slice(0, 3);
@@ -255,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showMenu();
             return;
         }
-        
+
         let pool = shuffle([...nouns]).slice(0, 20);
         questions = pool.map(v => {
             return {
@@ -286,20 +303,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Mode: Matching ---
     let firstCard = null;
     let matchPairsLeft = 0;
-    
+
     function initMatching() {
         hideAllStates();
         matchingState.classList.remove('hidden');
         matchingState.classList.add('flex');
-        
+
         const grid = document.getElementById('matching-grid');
         grid.innerHTML = '';
-        
+
         // Select 6-8 pairs
         let pairCount = Math.min(8, vocabularies.length);
         let pool = shuffle([...vocabularies]).slice(0, pairCount);
         matchPairsLeft = pairCount;
-        
+
         let cards = [];
         pool.forEach(v => {
             let deText = v.article ? `${v.article} ${v.word}` : v.word;
@@ -307,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cards.push({ id: v.id, text: v.translation_vn, type: 'vi' });
         });
         cards = shuffle(cards);
-        
+
         cards.forEach((c, idx) => {
             const btn = document.createElement('button');
             btn.className = 'match-card bg-card border-2 border-border rounded-xl p-4 sm:p-6 text-center font-semibold text-sm sm:text-base hover:bg-secondary flex items-center justify-center min-h-[80px] shadow-sm';
@@ -315,11 +332,11 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.dataset.id = c.id;
             btn.dataset.type = c.type;
             btn.dataset.idx = idx;
-            
+
             btn.onclick = () => handleMatchClick(btn, c);
             grid.appendChild(btn);
         });
-        
+
         // Timer
         let seconds = 0;
         document.getElementById('matching-timer').textContent = '00:00';
@@ -333,9 +350,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleMatchClick(btn, data) {
         if (btn.classList.contains('selected') || btn.classList.contains('matched')) return;
-        
+
         btn.classList.add('selected');
-        
+
         if (!firstCard) {
             firstCard = { btn, data };
         } else {
@@ -343,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isMatch = firstCard.data.id === data.id && firstCard.data.type !== data.type;
             const card1 = firstCard.btn;
             const card2 = btn;
-            
+
             if (isMatch) {
                 setTimeout(() => {
                     card1.classList.remove('selected');
@@ -374,10 +391,10 @@ document.addEventListener('DOMContentLoaded', () => {
         hideAllStates();
         summaryState.classList.remove('hidden');
         summaryState.classList.add('flex');
-        
+
         document.getElementById('summary-correct').textContent = score.correct;
         document.getElementById('summary-incorrect').textContent = score.incorrect;
-        
+
         let msg = '';
         if (currentMode === 'matching') {
             msg = `Bạn đã hoàn thành nối nghĩa trong thời gian ${document.getElementById('matching-timer').textContent}. Tuyệt vời!`;

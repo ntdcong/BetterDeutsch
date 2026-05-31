@@ -5,6 +5,9 @@ $isOwner = (!empty($notebook['user_id']) && $notebook['user_id'] == \App\Core\Au
     
     <?php if ($isOwner): ?>
     <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-10 bg-card/80 backdrop-blur-sm rounded-md p-1 shadow-sm border">
+        <button onclick="toggleShareNotebook(<?= $notebook['id'] ?>, '<?= htmlspecialchars(addslashes($notebook['name'])) ?>', <?= $notebook['is_shared'] ? 'true' : 'false' ?>, '<?= $notebook['share_token'] ?? '' ?>')" class="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-colors" title="Chia sẻ">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+        </button>
         <button onclick="editNotebook(<?= $notebook['id'] ?>, '<?= htmlspecialchars(addslashes($notebook['name'])) ?>', '<?= htmlspecialchars(addslashes($notebook['note'] ?? '')) ?>', <?= $notebook['notebook_group_id'] ?: 'null' ?>)" class="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md transition-colors" title="Chỉnh sửa">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
         </button>

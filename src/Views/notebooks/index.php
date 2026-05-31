@@ -210,6 +210,50 @@ function renderNotebookGrid($notebooksList, $groupId = '') {
     </div>
 </div>
 
+<!-- Modal: Chia sẻ Sổ tay -->
+<div id="modal-share" class="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm hidden flex items-center justify-center p-4 sm:p-6 transition-opacity">
+    <div class="bg-card text-card-foreground shadow-xl border rounded-xl w-full max-w-md animate-in fade-in zoom-in-95 relative overflow-hidden">
+        <div class="px-6 py-4 border-b flex justify-between items-center bg-muted/30">
+            <h3 class="font-semibold text-lg tracking-tight">Chia sẻ Sổ tay</h3>
+            <button onclick="closeModal('modal-share')" class="text-muted-foreground hover:text-foreground hover:bg-muted p-1.5 rounded-md transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="p-6 space-y-4">
+            <p class="text-sm text-muted-foreground" id="share-modal-desc">
+                Bật chia sẻ để tạo liên kết công khai. Bất kỳ ai có liên kết này đều có thể xem và học từ vựng trong sổ tay này mà không cần đăng nhập.
+            </p>
+            
+            <div class="flex items-center justify-between p-4 border rounded-lg bg-secondary/20">
+                <div>
+                    <h4 class="font-medium text-sm text-foreground">Trạng thái chia sẻ</h4>
+                    <p class="text-xs text-muted-foreground mt-1" id="share-status-text">Đang tắt</p>
+                </div>
+                <button id="btn-toggle-share" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors bg-muted" onclick="executeToggleShare()">
+                    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1" id="share-toggle-knob"></span>
+                </button>
+            </div>
+
+            <div id="share-link-container" class="hidden space-y-3 mt-4">
+                <div>
+                    <label class="text-xs font-medium text-foreground">Link học Flashcard</label>
+                    <div class="flex gap-2 mt-1">
+                        <input type="text" id="share-link-flashcard" readonly class="flex h-9 w-full rounded-md border border-input bg-muted px-3 py-1 text-sm shadow-sm" value="">
+                        <button onclick="copyShareLink('share-link-flashcard')" class="inline-flex items-center justify-center rounded-md text-sm font-medium border bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3">Copy</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-medium text-foreground">Link Luyện tập</label>
+                    <div class="flex gap-2 mt-1">
+                        <input type="text" id="share-link-practice" readonly class="flex h-9 w-full rounded-md border border-input bg-muted px-3 py-1 text-sm shadow-sm" value="">
+                        <button onclick="copyShareLink('share-link-practice')" class="inline-flex items-center justify-center rounded-md text-sm font-medium border bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function openModal(id) {
     document.getElementById(id).classList.remove('hidden');
@@ -238,6 +282,83 @@ function editNotebook(id, name, note, groupId) {
     document.getElementById('notebook_note').value = note || '';
     document.getElementById('notebook_group_id').value = groupId || '';
     openModal('modal-notebook');
+}
+
+let currentShareNotebookId = null;
+
+function toggleShareNotebook(id, name, isShared, token) {
+    currentShareNotebookId = id;
+    openModal('modal-share');
+    updateShareUI(isShared, token);
+}
+
+function updateShareUI(isShared, token) {
+    const knob = document.getElementById('share-toggle-knob');
+    const btn = document.getElementById('btn-toggle-share');
+    const statusText = document.getElementById('share-status-text');
+    const linkContainer = document.getElementById('share-link-container');
+    const inputFlashcard = document.getElementById('share-link-flashcard');
+    const inputPractice = document.getElementById('share-link-practice');
+
+    if (isShared) {
+        knob.classList.replace('translate-x-1', 'translate-x-6');
+        btn.classList.replace('bg-muted', 'bg-primary');
+        statusText.textContent = 'Đang bật';
+        statusText.classList.add('text-primary');
+        linkContainer.classList.remove('hidden');
+        
+        const baseUrl = window.location.origin;
+        inputFlashcard.value = `${baseUrl}/shared/flashcard?token=${token}`;
+        inputPractice.value = `${baseUrl}/shared/practice?token=${token}`;
+    } else {
+        knob.classList.replace('translate-x-6', 'translate-x-1');
+        btn.classList.replace('bg-primary', 'bg-muted');
+        statusText.textContent = 'Đang tắt';
+        statusText.classList.remove('text-primary');
+        linkContainer.classList.add('hidden');
+    }
+}
+
+async function executeToggleShare() {
+    if (!currentShareNotebookId) return;
+    
+    try {
+        const formData = new FormData();
+        formData.append('id', currentShareNotebookId);
+        
+        const response = await fetch('/notebooks/toggle-share', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            updateShareUI(data.is_shared, data.share_token);
+            // Optionally reload page on close to update the notebook card data attributes, 
+            // but for now the user can just use the modal. A page reload is safer.
+        } else {
+            alert('Có lỗi xảy ra: ' + (data.error || 'Unknown error'));
+        }
+    } catch (e) {
+        alert('Lỗi kết nối.');
+    }
+}
+
+function copyShareLink(inputId) {
+    const input = document.getElementById(inputId);
+    input.select();
+    input.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    
+    const btn = input.nextElementSibling;
+    const originalText = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.classList.add('text-green-600', 'border-green-600');
+    
+    setTimeout(() => {
+        btn.textContent = originalText;
+        btn.classList.remove('text-green-600', 'border-green-600');
+    }, 2000);
 }
 
 // Group Edit toggle

@@ -28,6 +28,10 @@ $router->post('/notebooks/update', [NotebookController::class, 'update']);
 $router->post('/notebooks/delete', [NotebookController::class, 'delete']);
 $router->get('/notebooks/flashcard', [NotebookController::class, 'flashcard']);
 $router->get('/notebooks/practice', [NotebookController::class, 'practice']);
+$router->post('/notebooks/toggle-share', [NotebookController::class, 'toggleShare']);
+
+$router->get('/shared/flashcard', [NotebookController::class, 'sharedFlashcard']);
+$router->get('/shared/practice', [NotebookController::class, 'sharedPractice']);
 
 $router->post('/notebook-groups/create', [NotebookGroupController::class, 'store']);
 $router->post('/notebook-groups/update', [NotebookGroupController::class, 'update']);
